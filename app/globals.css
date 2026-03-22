@@ -1,0 +1,25 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  color-scheme: dark;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  font-family: var(--font-inter), sans-serif;
+}
+
+::selection {
+  background: rgba(245, 166, 35, 0.35);
+  color: #fff;
+}
+
+.surface-panel {
+  @apply rounded-[1.5rem] border border-white/10 bg-white/[0.03];
+}
+
