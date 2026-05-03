@@ -1,5 +1,5 @@
 import type { User } from 'firebase/auth'
-import { arrayUnion, doc, getDoc, setDoc } from 'firebase/firestore'
+import { arrayUnion, doc, getDoc, serverTimestamp, setDoc } from 'firebase/firestore'
 import { getForgeOrganizationContext } from '@/lib/beam-home'
 import { db } from '@/lib/firebase'
 
@@ -192,9 +192,13 @@ function isRecord(value: unknown): value is Record<string, unknown> {
 }
 
 function isForgeMembershipEntry(value: unknown) {
-  if (!isRecord(value)) return false
-
   const { organizationId, entryChannel } = getForgeOrganizationContext()
+
+  if (typeof value === 'string') {
+    return value === 'forge' || value === organizationId || value === entryChannel
+  }
+
+  if (!isRecord(value)) return false
 
   return (
     value.id === 'forge' ||
@@ -255,18 +259,21 @@ async function ensureForgeMembershipWithFirebaseUser(user: User) {
 
   const userRef = doc(db, 'users', user.uid)
   const snapshot = await getDoc(userRef)
+  const existingRoles = snapshot.data()?.roles
 
-  if (hasForgeMembership(snapshot.data()?.memberships)) {
-    return
+  const payload: Record<string, unknown> = {
+    email: user.email ?? null,
+    displayName: user.displayName ?? null,
+    photoURL: user.photoURL ?? null,
+    memberships: arrayUnion('forge'),
+    lastLoginAt: serverTimestamp(),
   }
 
-  await setDoc(
-    userRef,
-    {
-      memberships: arrayUnion(buildForgeMembershipRecord()),
-    },
-    { merge: true }
-  )
+  if (!Array.isArray(existingRoles) || existingRoles.length === 0) {
+    payload.roles = ['participant']
+  }
+
+  await setDoc(userRef, payload, { merge: true })
 }
 
 async function ensureForgeMembershipWithBeamReturn(session: BeamReturnSession) {

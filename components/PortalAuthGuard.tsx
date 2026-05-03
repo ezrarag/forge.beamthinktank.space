@@ -1,23 +1,10 @@
 'use client'
 
-import { useEffect, useMemo, useState, type ReactNode } from 'react'
-import { usePathname, useSearchParams } from 'next/navigation'
+import { useEffect, type ReactNode } from 'react'
 import { useForgeAuth } from '@/components/AuthBootstrapper'
-import { buildForgeHandoffUrl } from '@/lib/beam-home'
 
 export function PortalAuthGuard({ children }: { children: ReactNode }) {
-  const pathname = usePathname()
-  const searchParams = useSearchParams()
   const { activeSession, isReady } = useForgeAuth()
-  const [requiresTopLevelLaunch, setRequiresTopLevelLaunch] = useState(false)
-
-  const returnPath = useMemo(() => {
-    const normalizedPathname = pathname === '/member' ? '/dashboard' : pathname
-    const query = searchParams.toString()
-    return `${normalizedPathname}${query ? `?${query}` : ''}`
-  }, [pathname, searchParams])
-
-  const handoffUrl = useMemo(() => buildForgeHandoffUrl({ returnPath }), [returnPath])
 
   useEffect(() => {
     if (!isReady || activeSession?.uid) {
@@ -25,25 +12,13 @@ export function PortalAuthGuard({ children }: { children: ReactNode }) {
     }
 
     const timeoutId = window.setTimeout(() => {
-      let isEmbedded = false
-      try {
-        isEmbedded = window.self !== window.top
-      } catch {
-        isEmbedded = true
-      }
-
-      if (isEmbedded) {
-        setRequiresTopLevelLaunch(true)
-        return
-      }
-
-      window.location.replace(handoffUrl)
+      window.location.replace('/?signin=true')
     }, 0)
 
     return () => {
       window.clearTimeout(timeoutId)
     }
-  }, [activeSession?.uid, handoffUrl, isReady])
+  }, [activeSession?.uid, isReady])
 
   if (!isReady || !activeSession?.uid) {
     return (
@@ -52,22 +27,8 @@ export function PortalAuthGuard({ children }: { children: ReactNode }) {
           <p>
             {!isReady
               ? 'Checking your Forge session...'
-              : requiresTopLevelLaunch
-                ? 'This Forge workspace is open inside an embedded frame. Continue in the top window to sign in through BEAM Home.'
-                : 'Redirecting you to BEAM Home sign-in...'}
+              : 'Redirecting you to Forge sign-in...'}
           </p>
-          {requiresTopLevelLaunch ? (
-            <div className="mt-6">
-              <a
-                href={handoffUrl}
-                target="_top"
-                rel="noreferrer"
-                className="inline-flex items-center gap-2 rounded-full bg-[#f5a623] px-5 py-3 text-sm font-semibold text-[#11131d]"
-              >
-                Continue in BEAM Home
-              </a>
-            </div>
-          ) : null}
         </section>
       </div>
     )
