@@ -1,12 +1,12 @@
 import { Suspense } from 'react'
-import { MemberDashboard } from '@/components/MemberDashboard'
+import { ContentPortal } from '@/components/ContentPortal'
 import { PortalAuthGuard } from '@/components/PortalAuthGuard'
 
-export default function MemberPage() {
+export default function ContentPortalPage() {
   return (
     <Suspense fallback={null}>
       <PortalAuthGuard>
-        <MemberDashboard />
+        <ContentPortal />
       </PortalAuthGuard>
     </Suspense>
   )

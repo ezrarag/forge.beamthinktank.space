@@ -1,8 +1,13 @@
+'use client'
+
 import Link from 'next/link'
 import { ArrowUpRight } from 'lucide-react'
-import { forgeTracks } from '@/lib/forge-content'
+import { useForgeContent } from '@/components/ForgeContentProvider'
+import { getLinkedParticipantNames } from '@/lib/forge-content'
 
 export default function TracksPage() {
+  const { participants, tracks } = useForgeContent()
+
   return (
     <div className="mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:px-10">
       <section className="rounded-[2rem] border border-white/10 bg-white/[0.03] p-6 shadow-forge sm:p-8">
@@ -14,8 +19,9 @@ export default function TracksPage() {
       </section>
 
       <section className="mt-8 grid gap-5 xl:grid-cols-2">
-        {forgeTracks.map((track) => {
+        {tracks.map((track) => {
           const Icon = track.icon
+          const linkedParticipants = getLinkedParticipantNames(participants, track.linkedParticipantIds)
           return (
             <article key={track.id} className="rounded-[1.75rem] border border-white/10 bg-[#0d111d] p-6">
               <div className="flex items-start justify-between gap-4">
@@ -52,6 +58,18 @@ export default function TracksPage() {
                   </div>
                 </div>
               </div>
+              {linkedParticipants.length ? (
+                <div className="mt-6">
+                  <p className="text-xs uppercase tracking-[0.16em] text-[#f5a623]">Linked Participants</p>
+                  <div className="mt-3 flex flex-wrap gap-2">
+                    {linkedParticipants.map((participant) => (
+                      <span key={participant} className="rounded-full border border-white/10 px-3 py-1 text-xs text-white/66">
+                        {participant}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              ) : null}
 
               <div className="mt-6 flex flex-wrap gap-3">
                 <Link href="/join" className="inline-flex items-center gap-2 rounded-full bg-[#f5a623] px-4 py-2 text-sm font-semibold text-[#11131d]">
@@ -61,6 +79,11 @@ export default function TracksPage() {
                 <Link href="/projects" className="inline-flex items-center gap-2 rounded-full border border-white/14 px-4 py-2 text-sm font-medium text-white">
                   View projects
                 </Link>
+                {track.id === 'content-production' ? (
+                  <Link href="/portal/content" className="inline-flex items-center gap-2 rounded-full border border-white/14 px-4 py-2 text-sm font-medium text-white">
+                    Open content portal
+                  </Link>
+                ) : null}
               </div>
             </article>
           )
@@ -69,4 +92,3 @@ export default function TracksPage() {
     </div>
   )
 }
-

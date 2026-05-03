@@ -1,6 +1,12 @@
+import type { Timestamp } from 'firebase/firestore'
 import type { LucideIcon } from 'lucide-react'
 
-export type ForgeTrackId = 'fintech' | 'software' | 'fabrication' | 'it'
+export type ForgeTrackId = 'fintech' | 'software' | 'fabrication' | 'it' | 'content-production'
+
+export interface ForgeTrackEquityFormula {
+  internalBEAM: string
+  clientFacing: string
+}
 
 export type MembershipRole = 'student' | 'business' | 'community'
 
@@ -17,13 +23,37 @@ export interface ForgeSlide {
 
 export interface ForgeTrack {
   id: ForgeTrackId
+  label?: string
+  slug?: string
   title: string
   tagline: string
   summary: string
+  focus?: string
   focusAreas: string[]
+  outcomes?: string[]
+  tools?: string[]
+  equityFormula?: ForgeTrackEquityFormula
   openings: string[]
   cohortWindow: string
+  linkedParticipantIds: string[]
   icon: LucideIcon
+}
+
+export interface EditableForgeTrack {
+  id: ForgeTrackId
+  label?: string
+  slug?: string
+  title: string
+  tagline: string
+  summary: string
+  focus?: string
+  focusAreas: string[]
+  outcomes?: string[]
+  tools?: string[]
+  equityFormula?: ForgeTrackEquityFormula
+  openings: string[]
+  cohortWindow: string
+  linkedParticipantIds: string[]
 }
 
 export interface ForgeProject {
@@ -37,6 +67,10 @@ export interface ForgeProject {
   outcomes: string[]
 }
 
+export interface EditableForgeProject extends ForgeProject {
+  linkedParticipantIds: string[]
+}
+
 export interface FeedEntry {
   id: string
   type: 'fabrication-log' | 'launch' | 'cohort-output' | 'client-delivery'
@@ -46,6 +80,39 @@ export interface FeedEntry {
   track: ForgeTrackId
   author: string
   panels: string[]
+}
+
+export interface EditableFeedEntry extends FeedEntry {
+  linkedParticipantIds: string[]
+}
+
+export interface MemberAssignment {
+  id: string
+  title: string
+  owner: string
+  status: string
+  payment: string
+  linkedParticipantIds: string[]
+}
+
+export interface AdminParticipant {
+  id: string
+  name: string
+  email: string
+  role: string
+  status: string
+  headline: string
+  notes: string
+}
+
+export interface ForgeContentSnapshot {
+  slides: ForgeSlide[]
+  tracks: EditableForgeTrack[]
+  projects: EditableForgeProject[]
+  feed: EditableFeedEntry[]
+  assignments: MemberAssignment[]
+  participants: AdminParticipant[]
+  updatedAt: string
 }
 
 export interface BeamRoleTask {
@@ -148,3 +215,29 @@ export interface ForgeMemberSnapshot {
   workContextResolution: WorkContextResolutionState | null
 }
 
+export type ForgeContentProjectType =
+  | 'ngo_clip'
+  | 'client_explainer'
+  | 'interview'
+  | 'social_cut'
+  | 'blueprint_still'
+  | 'other'
+
+export type ForgeContentProjectStatus = 'submitted' | 'in_production' | 'review' | 'delivered' | 'archived'
+
+export interface ForgeContentProject {
+  id: string
+  title: string
+  projectType: ForgeContentProjectType
+  ngoOrClient: string
+  brief: string
+  assetsAvailable: string[]
+  budget: string
+  submitterName: string
+  submitterEmail: string
+  status: ForgeContentProjectStatus
+  assignedTo?: string[]
+  deliverableUrls?: string[]
+  createdAt: Timestamp
+  updatedAt: Timestamp
+}

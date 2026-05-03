@@ -52,7 +52,9 @@ export default function JoinPage() {
             <h2 className="mt-3 text-2xl font-semibold text-white">{mode.title}</h2>
             <p className="mt-3 text-sm leading-7 text-white/66">{mode.summary}</p>
             <Link
-              href={buildForgeHandoffUrl({ role: mode.role, returnPath: '/member' })}
+              href={buildForgeHandoffUrl({ role: mode.role, returnPath: '/dashboard' })}
+              target="_top"
+              rel="noreferrer"
               className="mt-6 inline-flex items-center gap-2 rounded-full bg-[#f5a623] px-4 py-2 text-sm font-semibold text-[#11131d]"
             >
               Continue in BEAM Home
@@ -93,4 +95,3 @@ export default function JoinPage() {
     </div>
   )
 }
-

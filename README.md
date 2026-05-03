@@ -17,7 +17,9 @@ BEAM Forge is the technology, fabrication, and fintech NGO site for the BEAM Thi
 - `/tracks`: the four Forge tracks with openings and cohort windows
 - `/projects`: active and archived BEAM/client work
 - `/join`: handoff page into `home.beamthinktank.space`
-- `/member`: protected member dashboard backed by BEAM Home profile documents
+- `/dashboard`: protected Forge dashboard backed by BEAM Home profile documents
+- `/member`: legacy member route that renders the same dashboard surface
+- `/admin`: open admin editor for frontend content and participant links
 - `/api/subscribe`: public subscriber capture endpoint
 
 ## Setup
@@ -70,7 +72,7 @@ npm run dev
 
 ## BEAM Home Auth Handoff
 
-Forge does not implement its own registration or sign-in. The join flow constructs a BEAM Home handoff URL under `/onboard/handoff` with the same field names used in the current Home codebase:
+Forge does not implement its own registration or sign-in. The join flow constructs a BEAM Home handoff URL under `/onboard/handoff` with the same field names used in the current Home codebase and returns successful auth to `/dashboard`:
 
 - `role`
 - `sourceType=ngo_site`
@@ -102,15 +104,15 @@ It also calls these public Home endpoints:
 - `GET /api/roles`
 - `GET /api/participant/work-contexts`
 
-### Important Current Limitation
+### Current Handoff Bridge
 
-The current local `home.beamthinktank.space` codebase does not expose a documented cross-subdomain session exchange endpoint or cookie contract for Forge to consume directly. Home currently relies on:
+The current local `home.beamthinktank.space` codebase does not expose a documented cross-subdomain Firebase session exchange endpoint or cookie contract for Forge to consume directly. Home currently relies on:
 
 - Firebase client auth state
 - local profile documents in Firestore
 - local browser storage such as `beam-auth` and `beam-handoff` on the Home origin
 
-Because browser storage is origin-scoped, Forge can only populate the member view automatically when the Firebase session is already available on the Forge origin. The scaffold still checks an optional cookie name via `NEXT_PUBLIC_HOME_SESSION_COOKIE_NAME` so a future shared cookie/token contract can plug in without changing the route structure.
+Because browser storage is origin-scoped, Forge now consumes the BEAM return token that Home appends to the redirect hash, stores it in session storage, and uses it to read the user profile documents over the Firestore REST API when a local Firebase session is not yet available on the Forge origin. The scaffold still checks an optional cookie name via `NEXT_PUBLIC_HOME_SESSION_COOKIE_NAME` so a future shared cookie/session contract can replace this bridge without changing the route structure.
 
 ## Participant Identity / Role Context Sourced From Home
 
@@ -132,6 +134,26 @@ Published role definitions are sourced through Home’s public roles endpoint, w
 
 - `../home.beamthinktank.space/src/app/api/roles/route.ts`
 - `../home.beamthinktank.space/src/lib/beamRolesApi.ts`
+
+## Forge Admin Content
+
+Forge now includes an unprotected admin route at `/admin`. It does not use middleware or redirect guards, so you can enter and leave the admin area freely while editing public site content.
+
+The admin editor manages:
+
+- landing slides
+- track copy and linked participants
+- project board entries and linked participants
+- viewer feed entries and linked participants
+- member dashboard assignments and linked participants
+- a reusable participant roster
+
+Persistence behavior:
+
+- Preferred: Firestore document `forgeAdmin/siteContent`
+- Fallback: browser local storage key `forge-admin-content`
+
+Public pages, the viewer, tracks, projects, and member assignments all read from the same shared content provider, so admin changes appear across the frontend from one source of truth.
 
 ## Subscriber Capture
 
@@ -172,4 +194,3 @@ Home’s admin API requires a Firebase ID token in the `Authorization: Bearer <t
 - `POST /api/admin/website-directory/seed`
 
 For Forge specifically, use the admin UI or extend Home’s admin API to accept a custom payload for the Forge entry.
-

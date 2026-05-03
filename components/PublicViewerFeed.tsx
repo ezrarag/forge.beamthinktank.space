@@ -3,7 +3,8 @@
 import { useMemo, useState } from 'react'
 import { ArrowUpRight, Filter } from 'lucide-react'
 import Link from 'next/link'
-import { forgeFeed, forgeTracks } from '@/lib/forge-content'
+import { useForgeContent } from '@/components/ForgeContentProvider'
+import { getLinkedParticipantNames } from '@/lib/forge-content'
 import type { ForgeTrackId } from '@/lib/types'
 
 const filterOptions: Array<{ id: ForgeTrackId | 'all'; label: string }> = [
@@ -12,14 +13,16 @@ const filterOptions: Array<{ id: ForgeTrackId | 'all'; label: string }> = [
   { id: 'software', label: 'Software' },
   { id: 'fabrication', label: 'Fabrication' },
   { id: 'it', label: 'Infrastructure' },
+  { id: 'content-production', label: 'Content' },
 ]
 
 export function PublicViewerFeed() {
   const [filter, setFilter] = useState<ForgeTrackId | 'all'>('all')
+  const { feed, participants, tracks } = useForgeContent()
 
   const items = useMemo(() => {
-    return forgeFeed.filter((entry) => filter === 'all' || entry.track === filter)
-  }, [filter])
+    return feed.filter((entry) => filter === 'all' || entry.track === filter)
+  }, [feed, filter])
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:px-10">
@@ -61,7 +64,7 @@ export function PublicViewerFeed() {
 
       <section className="mt-8 grid gap-5 xl:grid-cols-[0.68fr_1.32fr]">
         <div className="space-y-4">
-          {forgeTracks.map((track) => {
+          {tracks.map((track) => {
             const Icon = track.icon
             return (
               <article key={track.id} className="rounded-[1.5rem] border border-white/10 bg-[#0d111d] p-5">
@@ -79,36 +82,48 @@ export function PublicViewerFeed() {
         </div>
 
         <div className="grid gap-4 lg:grid-cols-2">
-          {items.map((entry) => (
-            <article key={entry.id} className="rounded-[1.75rem] border border-white/10 bg-[#111522] p-5 shadow-forge">
-              <div className="flex items-center justify-between gap-3">
-                <span className="rounded-full border border-[#f5a623]/24 bg-[#f5a623]/10 px-3 py-1 text-xs uppercase tracking-[0.18em] text-[#f5a623]">
-                  {entry.type.replace('-', ' ')}
-                </span>
-                <span className="text-xs text-white/42">{entry.publishedAt}</span>
-              </div>
-              <h3 className="mt-5 text-2xl font-semibold text-white">{entry.title}</h3>
-              <p className="mt-3 text-sm leading-6 text-white/68">{entry.summary}</p>
-              <div className="mt-6 space-y-2">
-                {entry.panels.map((panel, index) => (
-                  <div key={`${entry.id}-${index}`} className="rounded-xl border border-white/8 bg-black/20 px-4 py-3">
-                    <p className="text-xs uppercase tracking-[0.16em] text-white/42">Panel {index + 1}</p>
-                    <p className="mt-1 text-sm text-white/78">{panel}</p>
+          {items.map((entry) => {
+            const linkedParticipants = getLinkedParticipantNames(participants, entry.linkedParticipantIds)
+
+            return (
+              <article key={entry.id} className="rounded-[1.75rem] border border-white/10 bg-[#111522] p-5 shadow-forge">
+                <div className="flex items-center justify-between gap-3">
+                  <span className="rounded-full border border-[#f5a623]/24 bg-[#f5a623]/10 px-3 py-1 text-xs uppercase tracking-[0.18em] text-[#f5a623]">
+                    {entry.type.replace('-', ' ')}
+                  </span>
+                  <span className="text-xs text-white/42">{entry.publishedAt}</span>
+                </div>
+                <h3 className="mt-5 text-2xl font-semibold text-white">{entry.title}</h3>
+                <p className="mt-3 text-sm leading-6 text-white/68">{entry.summary}</p>
+                <div className="mt-6 space-y-2">
+                  {entry.panels.map((panel, index) => (
+                    <div key={`${entry.id}-${index}`} className="rounded-xl border border-white/8 bg-black/20 px-4 py-3">
+                      <p className="text-xs uppercase tracking-[0.16em] text-white/42">Panel {index + 1}</p>
+                      <p className="mt-1 text-sm text-white/78">{panel}</p>
+                    </div>
+                  ))}
+                </div>
+                {linkedParticipants.length ? (
+                  <div className="mt-6 flex flex-wrap gap-2">
+                    {linkedParticipants.map((participant) => (
+                      <span key={participant} className="rounded-full border border-white/10 px-3 py-1 text-xs text-white/66">
+                        {participant}
+                      </span>
+                    ))}
                   </div>
-                ))}
-              </div>
-              <div className="mt-6 flex items-center justify-between text-sm text-white/62">
-                <span>{entry.author}</span>
-                <Link href="/join" className="inline-flex items-center gap-2 font-semibold text-white">
-                  Join this track
-                  <ArrowUpRight className="h-4 w-4" />
-                </Link>
-              </div>
-            </article>
-          ))}
+                ) : null}
+                <div className="mt-6 flex items-center justify-between text-sm text-white/62">
+                  <span>{entry.author}</span>
+                  <Link href="/join" className="inline-flex items-center gap-2 font-semibold text-white">
+                    Join this track
+                    <ArrowUpRight className="h-4 w-4" />
+                  </Link>
+                </div>
+              </article>
+            )
+          })}
         </div>
       </section>
     </div>
   )
 }
-

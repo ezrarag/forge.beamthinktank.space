@@ -1,10 +1,25 @@
 import {
   Anvil,
   CircuitBoard,
+  Clapperboard,
   TerminalSquare,
   Wrench,
+  type LucideIcon,
 } from 'lucide-react'
-import type { FeedEntry, ForgeProject, ForgeSlide, ForgeTrack } from '@/lib/types'
+import type {
+  AdminParticipant,
+  EditableFeedEntry,
+  EditableForgeProject,
+  EditableForgeTrack,
+  ForgeContentSnapshot,
+  ForgeProject,
+  ForgeSlide,
+  ForgeTrack,
+  ForgeTrackId,
+  MemberAssignment,
+} from '@/lib/types'
+
+export const forgeTrackIds: ForgeTrackId[] = ['fintech', 'software', 'fabrication', 'it', 'content-production']
 
 export const forgeSlides: ForgeSlide[] = [
   {
@@ -15,7 +30,7 @@ export const forgeSlides: ForgeSlide[] = [
       'Forge is the technology, fabrication, and fintech arm of the BEAM Think Tank ecosystem, where cohorts ship client work, internal R&D, and field-ready infrastructure.',
     ctaLabel: 'Open Forge Viewer',
     ctaHref: '/viewer',
-    metric: '4 operating tracks',
+    metric: '5 operating tracks',
     accent: 'from-[#f5a623]/30 via-[#f5a623]/8 to-transparent',
   },
   {
@@ -42,7 +57,7 @@ export const forgeSlides: ForgeSlide[] = [
   },
 ]
 
-export const forgeTracks: ForgeTrack[] = [
+export const forgeTracks: EditableForgeTrack[] = [
   {
     id: 'fintech',
     title: 'Fintech Product Creation',
@@ -52,7 +67,7 @@ export const forgeTracks: ForgeTrack[] = [
     focusAreas: ['Equity ledgers', 'Wallet UX', 'Payment orchestration', 'Dashboards for cohorts'],
     openings: ['Product designer', 'Payments engineer', 'Ledger operations analyst'],
     cohortWindow: 'Spring intake open through April 18',
-    icon: CircuitBoard,
+    linkedParticipantIds: [],
   },
   {
     id: 'software',
@@ -63,7 +78,7 @@ export const forgeTracks: ForgeTrack[] = [
     focusAreas: ['Next.js delivery', 'Platform integration', 'Content systems', 'Internal tooling'],
     openings: ['Frontend engineer', 'Full-stack engineer', 'Technical writer'],
     cohortWindow: 'Rolling placement for current semester teams',
-    icon: TerminalSquare,
+    linkedParticipantIds: [],
   },
   {
     id: 'fabrication',
@@ -74,7 +89,7 @@ export const forgeTracks: ForgeTrack[] = [
     focusAreas: ['Repair intake', 'Prototype sprints', 'Maker documentation', 'Bench testing'],
     openings: ['Fabrication technician', 'Repair clinic lead', 'Documentation fellow'],
     cohortWindow: 'Summer lab prep now accepting applicants',
-    icon: Anvil,
+    linkedParticipantIds: [],
   },
   {
     id: 'it',
@@ -85,11 +100,44 @@ export const forgeTracks: ForgeTrack[] = [
     focusAreas: ['Network setup', 'Device fleet management', 'Workspace security', 'Systems administration'],
     openings: ['IT generalist', 'Device fleet coordinator', 'Systems operator'],
     cohortWindow: 'Immediate openings for infrastructure coverage',
-    icon: Wrench,
+    linkedParticipantIds: [],
+  },
+  {
+    id: 'content-production',
+    label: 'Content Production & Marketing',
+    slug: 'content',
+    title: 'Content Production & Marketing',
+    tagline: 'Video, brand systems, social media, and marketing deliverables.',
+    summary:
+      'Video production, brand assets, social content pipeline, and marketing materials for BEAM NGOs and external clients.',
+    focus:
+      'Short-form video (15-second NGO clips, social cuts), long-form documentary content (interview series), brand identity systems, and marketing deliverables for BEAM clients.',
+    focusAreas: [
+      'Short-form NGO video',
+      'Documentary interviews',
+      'Brand identity systems',
+      'Client marketing assets',
+    ],
+    outcomes: [
+      'NGO identity clips (15 seconds per NGO)',
+      'BEAM video trilogy (What / How / Why)',
+      'Client explainer videos (Hroshi, ClearTrace, RAG)',
+      'Interview series (BEAM participant profiles)',
+      'Blueprint stills and brand assets',
+      'Social media content pipeline',
+    ],
+    tools: ['Midjourney', 'Veo3', 'CapCut Pro', 'ChatGPT image', 'Adobe suite'],
+    equityFormula: {
+      internalBEAM: 'Portfolio credit + solidarity fund share on completion',
+      clientFacing: '60% participant / 20% BEAM ops / 10% solidarity fund / 10% client platform fee',
+    },
+    openings: ['Video editor', 'Motion designer', 'Brand asset producer', 'Social content coordinator'],
+    cohortWindow: 'Content intake open now',
+    linkedParticipantIds: [],
   },
 ]
 
-export const forgeProjects: ForgeProject[] = [
+export const forgeProjects: EditableForgeProject[] = [
   {
     id: 'equity-ledger-core',
     title: 'Equity Ledger Core',
@@ -100,6 +148,7 @@ export const forgeProjects: ForgeProject[] = [
     summary:
       'A cohort-facing ledger for mixed compensation, vesting snapshots, and asset-backed contribution accounting.',
     outcomes: ['Participant balance sheets', 'Role-based audit views', 'Export-ready cap table summaries'],
+    linkedParticipantIds: [],
   },
   {
     id: 'ngo-site-fleet',
@@ -111,6 +160,7 @@ export const forgeProjects: ForgeProject[] = [
     summary:
       'Shared website delivery system across BEAM subdomains with unified auth, registry, and reusable content blocks.',
     outcomes: ['Cross-site auth handoff', 'Design system reuse', 'Registry-connected deployment flow'],
+    linkedParticipantIds: [],
   },
   {
     id: 'repair-clinic-pilot',
@@ -122,6 +172,7 @@ export const forgeProjects: ForgeProject[] = [
     summary:
       'A recurring clinic program for triage, repair, and refurbishment of essential devices in community settings.',
     outcomes: ['Intake workflow', 'Bench repair logs', 'Parts usage reporting'],
+    linkedParticipantIds: [],
   },
   {
     id: 'beam-network-hardening',
@@ -133,6 +184,7 @@ export const forgeProjects: ForgeProject[] = [
     summary:
       'Standardize network baselines, secure managed endpoints, and document recovery procedures across the ecosystem.',
     outcomes: ['Device inventory', 'Network diagrams', 'Incident response checklists'],
+    linkedParticipantIds: [],
   },
   {
     id: 'wallet-launch-kit',
@@ -144,10 +196,11 @@ export const forgeProjects: ForgeProject[] = [
     summary:
       'Prototype toolkit for launching branded participant wallets tied to milestone payouts and contribution credits.',
     outcomes: ['Wallet onboarding flow', 'Launch documentation', 'Partner demo environment'],
+    linkedParticipantIds: [],
   },
 ]
 
-export const forgeFeed: FeedEntry[] = [
+export const forgeFeed: EditableFeedEntry[] = [
   {
     id: 'fab-log-001',
     type: 'fabrication-log',
@@ -158,6 +211,7 @@ export const forgeFeed: FeedEntry[] = [
     track: 'fabrication',
     author: 'Forge Fabrication Cohort',
     panels: ['Intake checklist', 'Failure classification', 'Repair decision tree'],
+    linkedParticipantIds: [],
   },
   {
     id: 'launch-002',
@@ -169,6 +223,7 @@ export const forgeFeed: FeedEntry[] = [
     track: 'fintech',
     author: 'Forge Fintech Track',
     panels: ['Contribution snapshots', 'Equity placeholders', 'Cohort payout view'],
+    linkedParticipantIds: [],
   },
   {
     id: 'cohort-output-003',
@@ -180,6 +235,7 @@ export const forgeFeed: FeedEntry[] = [
     track: 'software',
     author: 'Forge Web Systems',
     panels: ['Public browsing model', 'Home handoff rules', 'Protected dashboard shell'],
+    linkedParticipantIds: [],
   },
   {
     id: 'delivery-004',
@@ -191,27 +247,279 @@ export const forgeFeed: FeedEntry[] = [
     track: 'it',
     author: 'Forge Infrastructure Team',
     panels: ['Fleet naming standard', 'Recovery runbook', 'Network asset map'],
+    linkedParticipantIds: [],
   },
 ]
 
-export const memberAssignments = [
+export const memberAssignments: MemberAssignment[] = [
   {
+    id: 'assignment-registry-sync',
     title: 'Forge Registry Sync',
     owner: 'NGO Site Fleet',
     status: 'In build',
     payment: 'Cash milestone',
+    linkedParticipantIds: [],
   },
   {
+    id: 'assignment-ledger-review',
     title: 'Mixed Compensation Ledger Review',
     owner: 'Equity Ledger Core',
     status: 'Needs sign-off',
     payment: 'In-kind equity credit',
+    linkedParticipantIds: [],
   },
   {
+    id: 'assignment-repair-sop',
     title: 'Repair Clinic SOP v2',
     owner: 'Repair Clinic Pilot',
     status: 'Drafting',
     payment: 'Community stipend',
+    linkedParticipantIds: [],
   },
 ]
 
+export const defaultParticipants: AdminParticipant[] = []
+
+const trackIcons: Record<ForgeTrackId, LucideIcon> = {
+  fintech: CircuitBoard,
+  software: TerminalSquare,
+  fabrication: Anvil,
+  it: Wrench,
+  'content-production': Clapperboard,
+}
+
+export function getForgeTrackIcon(trackId: ForgeTrackId) {
+  return trackIcons[trackId] || TerminalSquare
+}
+
+export function withTrackIcons(tracks: EditableForgeTrack[]): ForgeTrack[] {
+  return tracks.map((track) => ({
+    ...track,
+    icon: getForgeTrackIcon(track.id),
+  }))
+}
+
+export function createDefaultForgeContentSnapshot(): ForgeContentSnapshot {
+  return {
+    slides: forgeSlides.map((slide) => ({ ...slide })),
+    tracks: forgeTracks.map((track) => ({
+      ...track,
+      focusAreas: [...track.focusAreas],
+      outcomes: track.outcomes ? [...track.outcomes] : undefined,
+      tools: track.tools ? [...track.tools] : undefined,
+      equityFormula: track.equityFormula ? { ...track.equityFormula } : undefined,
+      openings: [...track.openings],
+      linkedParticipantIds: [...track.linkedParticipantIds],
+    })),
+    projects: forgeProjects.map((project) => ({
+      ...project,
+      outcomes: [...project.outcomes],
+      linkedParticipantIds: [...project.linkedParticipantIds],
+    })),
+    feed: forgeFeed.map((entry) => ({
+      ...entry,
+      panels: [...entry.panels],
+      linkedParticipantIds: [...entry.linkedParticipantIds],
+    })),
+    assignments: memberAssignments.map((assignment) => ({
+      ...assignment,
+      linkedParticipantIds: [...assignment.linkedParticipantIds],
+    })),
+    participants: defaultParticipants.map((participant) => ({ ...participant })),
+    updatedAt: new Date().toISOString(),
+  }
+}
+
+function normalizeStringArray(value: unknown) {
+  if (!Array.isArray(value)) return []
+  return value
+    .map((item) => (typeof item === 'string' ? item.trim() : ''))
+    .filter(Boolean)
+}
+
+function normalizeOptionalString(value: unknown, fallback?: string) {
+  return typeof value === 'string' ? value : fallback
+}
+
+function normalizeOptionalStringArray(value: unknown, fallback?: string[]) {
+  if (Array.isArray(value)) return normalizeStringArray(value)
+  return fallback ? [...fallback] : undefined
+}
+
+function normalizeEquityFormula(value: unknown, fallback?: EditableForgeTrack['equityFormula']) {
+  if (typeof value !== 'object' || value === null || Array.isArray(value)) {
+    return fallback ? { ...fallback } : undefined
+  }
+
+  const candidate = value as Partial<NonNullable<EditableForgeTrack['equityFormula']>>
+  return {
+    internalBEAM: typeof candidate.internalBEAM === 'string' ? candidate.internalBEAM : fallback?.internalBEAM ?? '',
+    clientFacing: typeof candidate.clientFacing === 'string' ? candidate.clientFacing : fallback?.clientFacing ?? '',
+  }
+}
+
+function isForgeTrackId(value: unknown): value is ForgeTrackId {
+  return typeof value === 'string' && forgeTrackIds.includes(value as ForgeTrackId)
+}
+
+function normalizeSlide(slide: Partial<ForgeSlide> | undefined, fallback: ForgeSlide): ForgeSlide {
+  return {
+    id: typeof slide?.id === 'string' && slide.id.trim() ? slide.id : fallback.id,
+    eyebrow: typeof slide?.eyebrow === 'string' ? slide.eyebrow : fallback.eyebrow,
+    title: typeof slide?.title === 'string' ? slide.title : fallback.title,
+    description: typeof slide?.description === 'string' ? slide.description : fallback.description,
+    ctaLabel: typeof slide?.ctaLabel === 'string' ? slide.ctaLabel : fallback.ctaLabel,
+    ctaHref: typeof slide?.ctaHref === 'string' ? slide.ctaHref : fallback.ctaHref,
+    metric: typeof slide?.metric === 'string' ? slide.metric : fallback.metric,
+    accent: typeof slide?.accent === 'string' ? slide.accent : fallback.accent,
+  }
+}
+
+function normalizeTrack(track: Partial<EditableForgeTrack> | undefined, fallback: EditableForgeTrack): EditableForgeTrack {
+  return {
+    id: fallback.id,
+    label: normalizeOptionalString(track?.label, fallback.label),
+    slug: normalizeOptionalString(track?.slug, fallback.slug),
+    title: typeof track?.title === 'string' ? track.title : fallback.title,
+    tagline: typeof track?.tagline === 'string' ? track.tagline : fallback.tagline,
+    summary: typeof track?.summary === 'string' ? track.summary : fallback.summary,
+    focus: normalizeOptionalString(track?.focus, fallback.focus),
+    focusAreas: track?.focusAreas ? normalizeStringArray(track.focusAreas) : [...fallback.focusAreas],
+    outcomes: normalizeOptionalStringArray(track?.outcomes, fallback.outcomes),
+    tools: normalizeOptionalStringArray(track?.tools, fallback.tools),
+    equityFormula: normalizeEquityFormula(track?.equityFormula, fallback.equityFormula),
+    openings: track?.openings ? normalizeStringArray(track.openings) : [...fallback.openings],
+    cohortWindow: typeof track?.cohortWindow === 'string' ? track.cohortWindow : fallback.cohortWindow,
+    linkedParticipantIds: track?.linkedParticipantIds ? normalizeStringArray(track.linkedParticipantIds) : [...fallback.linkedParticipantIds],
+  }
+}
+
+function normalizeProject(project: Partial<EditableForgeProject>): EditableForgeProject {
+  return {
+    id: typeof project.id === 'string' && project.id.trim() ? project.id : `project-${Math.random().toString(36).slice(2, 8)}`,
+    title: typeof project.title === 'string' ? project.title : '',
+    track: isForgeTrackId(project.track) ? project.track : 'software',
+    phase: project.phase === 'Active' || project.phase === 'Pipeline' || project.phase === 'Archived' ? project.phase : 'Active',
+    partner: typeof project.partner === 'string' ? project.partner : '',
+    compensation: typeof project.compensation === 'string' ? project.compensation : '',
+    summary: typeof project.summary === 'string' ? project.summary : '',
+    outcomes: normalizeStringArray(project.outcomes),
+    linkedParticipantIds: normalizeStringArray(project.linkedParticipantIds),
+  }
+}
+
+function normalizeFeedEntry(entry: Partial<EditableFeedEntry>): EditableFeedEntry {
+  return {
+    id: typeof entry.id === 'string' && entry.id.trim() ? entry.id : `feed-${Math.random().toString(36).slice(2, 8)}`,
+    type:
+      entry.type === 'fabrication-log' ||
+      entry.type === 'launch' ||
+      entry.type === 'cohort-output' ||
+      entry.type === 'client-delivery'
+        ? entry.type
+        : 'launch',
+    title: typeof entry.title === 'string' ? entry.title : '',
+    summary: typeof entry.summary === 'string' ? entry.summary : '',
+    publishedAt: typeof entry.publishedAt === 'string' ? entry.publishedAt : '',
+    track: isForgeTrackId(entry.track) ? entry.track : 'software',
+    author: typeof entry.author === 'string' ? entry.author : '',
+    panels: normalizeStringArray(entry.panels),
+    linkedParticipantIds: normalizeStringArray(entry.linkedParticipantIds),
+  }
+}
+
+function normalizeAssignment(assignment: Partial<MemberAssignment>): MemberAssignment {
+  return {
+    id: typeof assignment.id === 'string' && assignment.id.trim() ? assignment.id : `assignment-${Math.random().toString(36).slice(2, 8)}`,
+    title: typeof assignment.title === 'string' ? assignment.title : '',
+    owner: typeof assignment.owner === 'string' ? assignment.owner : '',
+    status: typeof assignment.status === 'string' ? assignment.status : '',
+    payment: typeof assignment.payment === 'string' ? assignment.payment : '',
+    linkedParticipantIds: normalizeStringArray(assignment.linkedParticipantIds),
+  }
+}
+
+function normalizeParticipant(participant: Partial<AdminParticipant>): AdminParticipant {
+  return {
+    id: typeof participant.id === 'string' && participant.id.trim() ? participant.id : `participant-${Math.random().toString(36).slice(2, 8)}`,
+    name: typeof participant.name === 'string' ? participant.name : '',
+    email: typeof participant.email === 'string' ? participant.email : '',
+    role: typeof participant.role === 'string' ? participant.role : '',
+    status: typeof participant.status === 'string' ? participant.status : '',
+    headline: typeof participant.headline === 'string' ? participant.headline : '',
+    notes: typeof participant.notes === 'string' ? participant.notes : '',
+  }
+}
+
+export function normalizeForgeContentSnapshot(value: Partial<ForgeContentSnapshot> | null | undefined): ForgeContentSnapshot {
+  const fallback = createDefaultForgeContentSnapshot()
+
+  if (!value) {
+    return fallback
+  }
+
+  const incomingSlides = Array.isArray(value.slides) ? value.slides : []
+  const incomingTracks = Array.isArray(value.tracks) ? value.tracks : []
+
+  const slideFallbackById = new Map(fallback.slides.map((slide) => [slide.id, slide]))
+  return {
+    slides:
+      incomingSlides.length > 0
+        ? incomingSlides.map((slide, index) => normalizeSlide(slide, slideFallbackById.get(slide?.id || '') || fallback.slides[index] || fallback.slides[0]))
+        : fallback.slides,
+    tracks: fallback.tracks.map((track) => normalizeTrack(incomingTracks.find((candidate) => candidate?.id === track.id), track)),
+    projects:
+      Array.isArray(value.projects) && value.projects.length > 0
+        ? value.projects.map((project) => normalizeProject(project))
+        : fallback.projects,
+    feed:
+      Array.isArray(value.feed) && value.feed.length > 0
+        ? value.feed.map((entry) => normalizeFeedEntry(entry))
+        : fallback.feed,
+    assignments:
+      Array.isArray(value.assignments) && value.assignments.length > 0
+        ? value.assignments.map((assignment) => normalizeAssignment(assignment))
+        : fallback.assignments,
+    participants:
+      Array.isArray(value.participants) && value.participants.length > 0
+        ? value.participants.map((participant) => normalizeParticipant(participant))
+        : fallback.participants,
+    updatedAt: typeof value.updatedAt === 'string' && value.updatedAt ? value.updatedAt : fallback.updatedAt,
+  }
+}
+
+export function getLinkedParticipantNames(participants: AdminParticipant[], linkedParticipantIds: string[]) {
+  if (!linkedParticipantIds.length) return []
+
+  const participantMap = new Map(participants.map((participant) => [participant.id, participant]))
+  return linkedParticipantIds
+    .map((participantId) => participantMap.get(participantId)?.name || null)
+    .filter((name): name is string => Boolean(name))
+}
+
+export function stripTrackIcons(tracks: ForgeTrack[]): EditableForgeTrack[] {
+  return tracks.map((track) => ({
+    id: track.id,
+    label: track.label,
+    slug: track.slug,
+    title: track.title,
+    tagline: track.tagline,
+    summary: track.summary,
+    focus: track.focus,
+    focusAreas: [...track.focusAreas],
+    outcomes: track.outcomes ? [...track.outcomes] : undefined,
+    tools: track.tools ? [...track.tools] : undefined,
+    equityFormula: track.equityFormula ? { ...track.equityFormula } : undefined,
+    openings: [...track.openings],
+    cohortWindow: track.cohortWindow,
+    linkedParticipantIds: [...track.linkedParticipantIds],
+  }))
+}
+
+export function cloneProject(project: ForgeProject): EditableForgeProject {
+  return {
+    ...project,
+    outcomes: [...project.outcomes],
+    linkedParticipantIds: [],
+  }
+}

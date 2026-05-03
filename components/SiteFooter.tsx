@@ -8,7 +8,7 @@ export function SiteFooter() {
           <p className="text-xs uppercase tracking-[0.24em] text-[#f5a623]">BEAM Forge</p>
           <p className="mt-3 max-w-xl text-white/78">
             Built inside the BEAM Think Tank ecosystem for student, professor, and community cohorts shipping fintech,
-            software, fabrication, and infrastructure work.
+            software, fabrication, content, and infrastructure work.
           </p>
         </div>
         <div>
@@ -20,11 +20,14 @@ export function SiteFooter() {
             <Link href="/tracks" className="block hover:text-white">
               Tracks
             </Link>
+            <Link href="/portal/content" className="block hover:text-white">
+              Content
+            </Link>
             <Link href="/projects" className="block hover:text-white">
               Projects
             </Link>
-            <Link href="/member" className="block hover:text-white">
-              Member
+            <Link href="/dashboard" className="block hover:text-white">
+              Dashboard
             </Link>
           </div>
         </div>
@@ -46,4 +49,3 @@ export function SiteFooter() {
     </footer>
   )
 }
-

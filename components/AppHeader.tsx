@@ -7,8 +7,10 @@ const navItems = [
   { href: '/', label: 'Overview' },
   { href: '/viewer', label: 'Viewer' },
   { href: '/tracks', label: 'Tracks' },
+  { href: '/portal/content', label: 'Content' },
   { href: '/projects', label: 'Projects' },
-  { href: '/member', label: 'Member' },
+  { href: '/dashboard', label: 'Dashboard' },
+  { href: '/admin', label: 'Admin' },
 ]
 
 export function AppHeader({ className }: { className?: string }) {
@@ -21,7 +23,7 @@ export function AppHeader({ className }: { className?: string }) {
           </div>
           <div className="min-w-0">
             <p className="text-xs uppercase tracking-[0.26em] text-[#f5a623]">BEAM Forge</p>
-            <p className="truncate text-sm text-white/72">Technology, fabrication, fintech, infrastructure</p>
+            <p className="truncate text-sm text-white/72">Technology, fabrication, fintech, content, infrastructure</p>
           </div>
         </Link>
 
@@ -40,7 +42,9 @@ export function AppHeader({ className }: { className?: string }) {
             <Wrench className="h-4 w-4" />
           </div>
           <Link
-            href={buildForgeHandoffUrl({ returnPath: '/member' })}
+            href={buildForgeHandoffUrl({ returnPath: '/dashboard' })}
+            target="_top"
+            rel="noreferrer"
             className="inline-flex items-center gap-2 rounded-full border border-white/14 px-4 py-2 text-sm font-medium text-white transition hover:border-white/30 hover:bg-white/[0.04]"
           >
             <LogIn className="h-4 w-4" />
@@ -58,4 +62,3 @@ export function AppHeader({ className }: { className?: string }) {
     </header>
   )
 }
-

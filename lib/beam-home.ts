@@ -8,12 +8,32 @@ import type {
 } from '@/lib/types'
 
 const defaultBeamHomeUrl = process.env.NEXT_PUBLIC_BEAM_HOME_URL?.trim() || 'https://home.beamthinktank.space'
-const defaultSiteUrl = process.env.NEXT_PUBLIC_SITE_URL?.trim() || 'http://localhost:3000'
 const forgeOrganizationId = process.env.NEXT_PUBLIC_FORGE_ORGANIZATION_ID?.trim() || 'org_beam_forge'
 const forgeOrganizationName = process.env.NEXT_PUBLIC_FORGE_ORGANIZATION_NAME?.trim() || 'BEAM Forge'
 const forgeCohortId = process.env.NEXT_PUBLIC_FORGE_COHORT_ID?.trim() || 'cohort_beam_forge_launch'
 const forgeCohortName = process.env.NEXT_PUBLIC_FORGE_COHORT_NAME?.trim() || 'Forge Launch Cohort'
 const forgeEntryChannel = process.env.NEXT_PUBLIC_FORGE_ENTRY_CHANNEL?.trim() || 'forge.beamthinktank.space'
+
+function normalizeSiteUrl(value: string | undefined) {
+  const trimmed = value?.trim()
+  if (!trimmed) return null
+
+  try {
+    const normalized = /^https?:\/\//i.test(trimmed)
+      ? trimmed
+      : `${trimmed.startsWith('localhost') || trimmed.startsWith('127.0.0.1') ? 'http' : 'https'}://${trimmed}`
+
+    return new URL(normalized).origin
+  } catch {
+    return null
+  }
+}
+
+const defaultSiteUrl =
+  normalizeSiteUrl(process.env.NEXT_PUBLIC_VERCEL_PROJECT_PRODUCTION_URL) ??
+  normalizeSiteUrl(process.env.NEXT_PUBLIC_SITE_URL) ??
+  normalizeSiteUrl(process.env.NEXT_PUBLIC_VERCEL_URL) ??
+  'http://localhost:3000'
 
 const ORGANIZATION_CATALOG: ParticipantArea[] = [
   {
@@ -95,6 +115,21 @@ export function getBeamHomeUrl(path = '') {
   return `${defaultBeamHomeUrl.replace(/\/+$/, '')}${path}`
 }
 
+export function getForgeSiteUrl() {
+  return defaultSiteUrl
+}
+
+export function getForgeOrganizationContext() {
+  return {
+    organizationId: forgeOrganizationId,
+    organizationName: forgeOrganizationName,
+    cohortId: forgeCohortId,
+    cohortName: forgeCohortName,
+    entryChannel: forgeEntryChannel,
+    siteUrl: defaultSiteUrl,
+  }
+}
+
 export function buildForgeHandoffUrl(params?: { role?: 'student' | 'business' | 'community'; returnPath?: string }) {
   const endpoint = new URL(getBeamHomeUrl('/onboard/handoff'))
   endpoint.searchParams.set('role', params?.role ?? 'community')
@@ -106,11 +141,11 @@ export function buildForgeHandoffUrl(params?: { role?: 'student' | 'business' | 
   endpoint.searchParams.set('cohortId', forgeCohortId)
   endpoint.searchParams.set('cohortName', forgeCohortName)
   endpoint.searchParams.set('siteUrl', defaultSiteUrl)
-  endpoint.searchParams.set('landingPageUrl', `${defaultSiteUrl}${params?.returnPath ?? '/member'}`)
+  endpoint.searchParams.set('landingPageUrl', `${defaultSiteUrl}${params?.returnPath ?? '/dashboard'}`)
   endpoint.searchParams.set('referrerUrl', defaultSiteUrl)
   endpoint.searchParams.set('redirectTarget', 'dashboard')
   endpoint.searchParams.set('scenarioLabel', 'BEAM Forge')
-  endpoint.searchParams.set('returnTo', `${defaultSiteUrl}${params?.returnPath ?? '/member'}`)
+  endpoint.searchParams.set('returnTo', `${defaultSiteUrl}${params?.returnPath ?? '/dashboard'}`)
   return endpoint.toString()
 }
 
@@ -254,4 +289,3 @@ export function deriveDefaultDashboardPreferences(handoff: BeamHandoffRecord | n
 export function getKnownSessionCookieName() {
   return process.env.NEXT_PUBLIC_HOME_SESSION_COOKIE_NAME?.trim() || ''
 }
-
