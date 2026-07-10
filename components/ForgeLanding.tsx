@@ -1,252 +1,134 @@
 'use client'
 
+import { useEffect, useState } from 'react'
 import Link from 'next/link'
-import { ArrowRight, Boxes, HardDriveDownload, Orbit, ShieldCheck } from 'lucide-react'
-import { buildForgeHandoffUrl } from '@/lib/beam-home'
-import { useForgeContent } from '@/components/ForgeContentProvider'
-import { getLinkedParticipantNames } from '@/lib/forge-content'
-import { SubscribeForm } from '@/components/SubscribeForm'
+import { AnimatePresence, motion, useReducedMotion } from 'framer-motion'
+import { ArrowLeft, ArrowRight } from 'lucide-react'
+import { forgeCategories } from '@/lib/forge-content'
 
-const panelIcons = [Boxes, Orbit, ShieldCheck, HardDriveDownload]
+const AUTO_ADVANCE_MS = 6500
 
 export function ForgeLanding() {
-  const { feed, participants, projects, slides, tracks } = useForgeContent()
+  const [activeIndex, setActiveIndex] = useState(0)
+  const prefersReducedMotion = useReducedMotion()
+  const activeCategory = forgeCategories[activeIndex]
+  const ActiveIcon = activeCategory.icon
+
+  useEffect(() => {
+    if (prefersReducedMotion) return
+
+    const intervalId = window.setInterval(() => {
+      setActiveIndex((current) => (current + 1) % forgeCategories.length)
+    }, AUTO_ADVANCE_MS)
+
+    return () => window.clearInterval(intervalId)
+  }, [prefersReducedMotion])
+
+  function showPrevious() {
+    setActiveIndex((current) => (current - 1 + forgeCategories.length) % forgeCategories.length)
+  }
+
+  function showNext() {
+    setActiveIndex((current) => (current + 1) % forgeCategories.length)
+  }
 
   return (
-    <div className="space-y-20 pb-20">
-      <section className="mx-auto grid min-h-[calc(100dvh-7rem)] max-w-7xl gap-8 px-4 pt-10 sm:px-6 lg:grid-cols-[1.15fr_0.85fr] lg:px-10 lg:pt-16">
-        <div className="flex flex-col justify-between rounded-[2rem] border border-white/10 bg-white/[0.03] p-6 shadow-forge sm:p-8">
-          <div className="space-y-6">
-            <div className="inline-flex rounded-full border border-[#f5a623]/30 bg-[#f5a623]/10 px-3 py-1 text-xs uppercase tracking-[0.22em] text-[#f5a623]">
-              Forge Slide Deck
-            </div>
-            <div className="space-y-4">
-              <h1 className="max-w-4xl text-4xl font-semibold tracking-[-0.04em] text-white sm:text-5xl lg:text-6xl">
-                {slides[0]?.title}
-              </h1>
-              <p className="max-w-2xl text-base leading-7 text-white/72 sm:text-lg">
-                {slides[0]?.description}
-              </p>
-            </div>
-            <div className="flex flex-wrap gap-3">
-              <Link
-                href="/viewer"
-                className="inline-flex items-center gap-2 rounded-full bg-[#f5a623] px-5 py-3 text-sm font-semibold text-[#11131d]"
-              >
-                Open Viewer
-                <ArrowRight className="h-4 w-4" />
-              </Link>
-              <Link
-                href={buildForgeHandoffUrl({ returnPath: '/dashboard' })}
-                target="_top"
-                rel="noreferrer"
-                className="inline-flex items-center gap-2 rounded-full border border-white/14 px-5 py-3 text-sm font-medium text-white"
-              >
-                Sign In Through Home
-              </Link>
-            </div>
+    <section className="relative isolate min-h-[calc(100dvh-5rem)] overflow-hidden bg-[#070912]" aria-roledescription="carousel" aria-label="Forge project categories">
+      <AnimatePresence mode="wait" initial={false}>
+        <motion.div
+          key={activeCategory.slug}
+          initial={prefersReducedMotion ? false : { opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={prefersReducedMotion ? undefined : { opacity: 0 }}
+          transition={{ duration: 0.7, ease: 'easeOut' }}
+          className="absolute inset-0"
+          aria-live="polite"
+        >
+          <div
+            className="absolute inset-0 opacity-55"
+            style={{
+              background: `radial-gradient(circle at 72% 30%, ${activeCategory.colorAccent}70, transparent 26%), radial-gradient(circle at 18% 78%, ${activeCategory.colorAccent}38, transparent 31%), linear-gradient(135deg, #090b14 0%, #0d111d 48%, ${activeCategory.colorAccent}20 100%)`,
+            }}
+          />
+          <div className="absolute inset-0 bg-forge-grid bg-[size:64px_64px] opacity-[0.11]" />
+          <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(4,5,10,.88)_0%,rgba(4,5,10,.38)_58%,rgba(4,5,10,.68)_100%)]" />
+          <div
+            className="absolute right-[8%] top-1/2 flex h-[42vw] max-h-[35rem] min-h-72 w-[42vw] min-w-72 -translate-y-1/2 items-center justify-center rounded-full border opacity-20 blur-[0.5px]"
+            style={{ borderColor: activeCategory.colorAccent, boxShadow: `0 0 150px ${activeCategory.colorAccent}33` }}
+          >
+            <ActiveIcon className="h-1/2 w-1/2" style={{ color: activeCategory.colorAccent }} strokeWidth={0.65} aria-hidden="true" />
           </div>
+        </motion.div>
+      </AnimatePresence>
 
-          <div className="mt-10 grid gap-3 sm:grid-cols-3">
-            {slides.map((slide) => (
-              <article key={slide.id} className="rounded-2xl border border-white/10 bg-black/20 p-4">
-                <p className="text-xs uppercase tracking-[0.18em] text-white/45">{slide.eyebrow}</p>
-                <p className="mt-3 text-lg font-semibold text-white">{slide.metric}</p>
-                <p className="mt-2 text-sm text-white/60">{slide.description}</p>
-              </article>
+      <div className="relative z-10 mx-auto flex min-h-[calc(100dvh-5rem)] max-w-7xl flex-col justify-between px-5 py-8 sm:px-8 sm:py-10 lg:px-12">
+        <div className="flex items-center justify-between gap-5 text-[0.68rem] uppercase tracking-[0.28em] text-white/58">
+          <p><span className="text-white">BEAM</span><span className="mx-4 text-white/30">·</span>Forge</p>
+          <p aria-label={`Slide ${activeIndex + 1} of ${forgeCategories.length}`}>
+            <span className="text-white">{String(activeIndex + 1).padStart(2, '0')}</span>
+            <span className="mx-2 text-white/28">/</span>
+            {String(forgeCategories.length).padStart(2, '0')}
+          </p>
+        </div>
+
+        <div className="my-auto max-w-5xl py-16 sm:py-24">
+          <AnimatePresence mode="wait" initial={false}>
+            <motion.div
+              key={`copy-${activeCategory.slug}`}
+              initial={prefersReducedMotion ? false : { opacity: 0, y: 18 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={prefersReducedMotion ? undefined : { opacity: 0, y: -10 }}
+              transition={{ duration: 0.45, ease: 'easeOut' }}
+            >
+              <p className="text-xs uppercase tracking-[0.3em]" style={{ color: activeCategory.colorAccent }}>
+                Door {String(activeIndex + 1).padStart(2, '0')} · Project category
+              </p>
+              <h1 className="mt-6 max-w-5xl font-serif text-5xl leading-[0.92] tracking-[-0.045em] text-white sm:text-7xl lg:text-[7.25rem]">
+                {activeCategory.label}
+              </h1>
+              <p className="mt-7 max-w-2xl text-base leading-7 text-white/68 sm:text-lg">
+                {activeCategory.description}
+              </p>
+              <Link
+                href={`/projects?category=${activeCategory.slug}#category-projects`}
+                className="mt-9 inline-flex items-center gap-3 rounded-full bg-[#f1f1e9] px-6 py-3.5 text-sm font-semibold text-[#101512] shadow-2xl transition hover:-translate-y-0.5 hover:bg-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white"
+              >
+                Explore projects
+                <ArrowRight className="h-4 w-4" aria-hidden="true" />
+              </Link>
+            </motion.div>
+          </AnimatePresence>
+        </div>
+
+        <div className="flex items-end justify-between gap-6">
+          <div className="flex items-center gap-3">
+            {forgeCategories.map((category, index) => (
+              <button
+                key={category.id}
+                type="button"
+                onClick={() => setActiveIndex(index)}
+                aria-label={`Show ${category.label}`}
+                aria-current={index === activeIndex ? 'true' : undefined}
+                className="flex h-8 items-center"
+              >
+                <span
+                  className={`block h-1 rounded-full transition-all ${index === activeIndex ? 'w-8' : 'w-2 bg-white/30 hover:bg-white/60'}`}
+                  style={index === activeIndex ? { backgroundColor: activeCategory.colorAccent } : undefined}
+                />
+              </button>
             ))}
           </div>
-        </div>
 
-        <div className="grid gap-4">
-          {slides.map((slide, index) => {
-            const Icon = panelIcons[index] || Boxes
-            return (
-              <article
-                key={slide.id}
-                className="relative overflow-hidden rounded-[1.75rem] border border-white/10 bg-[#111423] p-6 shadow-forge"
-              >
-                <div className={`pointer-events-none absolute inset-0 bg-gradient-to-br ${slide.accent}`} />
-                <div className="relative">
-                  <div className="flex items-start justify-between gap-4">
-                    <div>
-                      <p className="text-xs uppercase tracking-[0.2em] text-[#f5a623]">{slide.eyebrow}</p>
-                      <h2 className="mt-3 text-2xl font-semibold text-white">{slide.title}</h2>
-                    </div>
-                    <div className="rounded-2xl border border-white/10 bg-black/20 p-3 text-[#f5a623]">
-                      <Icon className="h-5 w-5" />
-                    </div>
-                  </div>
-                  <p className="mt-4 text-sm leading-6 text-white/68">{slide.description}</p>
-                  <Link href={slide.ctaHref} className="mt-6 inline-flex items-center gap-2 text-sm font-semibold text-white">
-                    {slide.ctaLabel}
-                    <ArrowRight className="h-4 w-4" />
-                  </Link>
-                </div>
-              </article>
-            )
-          })}
-        </div>
-      </section>
-
-      <section className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-10">
-        <div className="mb-8 flex items-end justify-between gap-6">
-          <div>
-            <p className="text-xs uppercase tracking-[0.22em] text-[#f5a623]">Tracks</p>
-            <h2 className="mt-3 text-3xl font-semibold text-white sm:text-4xl">Five operating tracks, one shared build floor.</h2>
-          </div>
-          <Link href="/tracks" className="hidden text-sm font-semibold text-white/78 hover:text-white sm:inline-flex">
-            View all tracks
-          </Link>
-        </div>
-        <div className="grid gap-4 lg:grid-cols-2 xl:grid-cols-5">
-          {tracks.map((track) => {
-            const Icon = track.icon
-            const linkedParticipants = getLinkedParticipantNames(participants, track.linkedParticipantIds)
-            return (
-              <article key={track.id} className="rounded-[1.5rem] border border-white/10 bg-white/[0.03] p-5">
-                <div className="flex items-center justify-between gap-3">
-                  <div className="rounded-2xl border border-[#f5a623]/24 bg-[#f5a623]/10 p-3 text-[#f5a623]">
-                    <Icon className="h-5 w-5" />
-                  </div>
-                  <span className="text-xs uppercase tracking-[0.18em] text-white/42">{track.cohortWindow}</span>
-                </div>
-                <h3 className="mt-5 text-xl font-semibold text-white">{track.title}</h3>
-                <p className="mt-2 text-sm text-white/66">{track.summary}</p>
-                <div className="mt-5 flex flex-wrap gap-2">
-                  {track.focusAreas.slice(0, 3).map((focus) => (
-                    <span key={focus} className="rounded-full border border-white/10 px-3 py-1 text-xs text-white/64">
-                      {focus}
-                    </span>
-                  ))}
-                </div>
-                {linkedParticipants.length ? (
-                  <div className="mt-5 flex flex-wrap gap-2">
-                    {linkedParticipants.slice(0, 3).map((participant) => (
-                      <span key={participant} className="rounded-full border border-[#f5a623]/24 bg-[#f5a623]/10 px-3 py-1 text-xs text-[#f5a623]">
-                        {participant}
-                      </span>
-                    ))}
-                  </div>
-                ) : null}
-              </article>
-            )
-          })}
-        </div>
-      </section>
-
-      <section className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-10">
-        <div className="rounded-[2rem] border border-white/10 bg-white/[0.03] p-6 sm:p-8">
-          <div className="flex flex-col gap-8 lg:flex-row lg:items-start lg:justify-between">
-            <div className="max-w-2xl">
-              <p className="text-xs uppercase tracking-[0.22em] text-[#f5a623]">Active Projects</p>
-              <h2 className="mt-3 text-3xl font-semibold text-white sm:text-4xl">Partner delivery and BEAM R&D stay on the same board.</h2>
-            </div>
-            <Link href="/projects" className="text-sm font-semibold text-white/76 hover:text-white">
-              Open project board
-            </Link>
-          </div>
-          <div className="mt-8 grid gap-4 lg:grid-cols-2">
-            {projects.slice(0, 4).map((project) => {
-              const linkedParticipants = getLinkedParticipantNames(participants, project.linkedParticipantIds)
-
-              return (
-                <article key={project.id} className="rounded-[1.5rem] border border-white/10 bg-[#0b0e18] p-5">
-                  <div className="flex flex-wrap items-center gap-2">
-                    <span className="rounded-full border border-[#f5a623]/25 bg-[#f5a623]/10 px-3 py-1 text-xs uppercase tracking-[0.18em] text-[#f5a623]">
-                      {project.phase}
-                    </span>
-                    <span className="text-xs uppercase tracking-[0.16em] text-white/46">{project.partner}</span>
-                  </div>
-                  <h3 className="mt-4 text-2xl font-semibold text-white">{project.title}</h3>
-                  <p className="mt-3 text-sm leading-6 text-white/68">{project.summary}</p>
-                  <p className="mt-4 text-sm font-medium text-white">{project.compensation}</p>
-                  {linkedParticipants.length ? (
-                    <div className="mt-5 flex flex-wrap gap-2">
-                      {linkedParticipants.map((participant) => (
-                        <span key={participant} className="rounded-full border border-white/10 px-3 py-1 text-xs text-white/66">
-                          {participant}
-                        </span>
-                      ))}
-                    </div>
-                  ) : null}
-                </article>
-              )
-            })}
+          <div className="flex gap-3">
+            <button type="button" onClick={showPrevious} aria-label="Previous category" className="flex h-12 w-12 items-center justify-center rounded-full border border-white/24 bg-black/20 text-white transition hover:border-white/55 hover:bg-white/10">
+              <ArrowLeft className="h-5 w-5" aria-hidden="true" />
+            </button>
+            <button type="button" onClick={showNext} aria-label="Next category" className="flex h-12 w-12 items-center justify-center rounded-full border border-white/24 bg-black/20 text-white transition hover:border-white/55 hover:bg-white/10">
+              <ArrowRight className="h-5 w-5" aria-hidden="true" />
+            </button>
           </div>
         </div>
-      </section>
-
-      <section className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-10">
-        <div className="mb-8">
-          <p className="text-xs uppercase tracking-[0.22em] text-[#f5a623]">Public Feed</p>
-          <h2 className="mt-3 text-3xl font-semibold text-white sm:text-4xl">Viewer-style panels for launches, logs, and cohort output.</h2>
-        </div>
-        <div className="grid gap-4 xl:grid-cols-4">
-          {feed.map((entry) => {
-            const linkedParticipants = getLinkedParticipantNames(participants, entry.linkedParticipantIds)
-
-            return (
-              <article key={entry.id} className="rounded-[1.5rem] border border-white/10 bg-[#0c101c] p-5">
-                <div className="flex items-center justify-between gap-3">
-                  <span className="text-xs uppercase tracking-[0.18em] text-[#f5a623]">{entry.type.replace('-', ' ')}</span>
-                  <span className="text-xs text-white/44">{entry.publishedAt}</span>
-                </div>
-                <h3 className="mt-4 text-xl font-semibold text-white">{entry.title}</h3>
-                <p className="mt-3 text-sm leading-6 text-white/66">{entry.summary}</p>
-                <div className="mt-5 space-y-2">
-                  {entry.panels.map((panel) => (
-                    <div key={panel} className="rounded-xl border border-white/8 bg-white/[0.02] px-3 py-2 text-sm text-white/72">
-                      {panel}
-                    </div>
-                  ))}
-                </div>
-                {linkedParticipants.length ? (
-                  <div className="mt-5 flex flex-wrap gap-2">
-                    {linkedParticipants.map((participant) => (
-                      <span key={participant} className="rounded-full border border-white/10 px-3 py-1 text-xs text-white/66">
-                        {participant}
-                      </span>
-                    ))}
-                  </div>
-                ) : null}
-              </article>
-            )
-          })}
-        </div>
-      </section>
-
-      <section className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-10">
-        <div className="grid gap-6 rounded-[2rem] border border-white/10 bg-[#121624] p-6 sm:p-8 lg:grid-cols-[1.2fr_0.8fr]">
-          <div>
-            <p className="text-xs uppercase tracking-[0.22em] text-[#f5a623]">Join / Subscribe</p>
-            <h2 className="mt-3 text-3xl font-semibold text-white sm:text-4xl">Follow the public output or enter the cohort pipeline.</h2>
-            <p className="mt-4 max-w-2xl text-sm leading-7 text-white/70">
-              Public subscribers get release notes, fabrication logs, product launches, and cohort output updates. Full participants
-              register through BEAM Home and return with Forge organization and cohort context.
-            </p>
-            <div className="mt-6 flex flex-wrap gap-3">
-              <Link href="/join" className="rounded-full bg-[#f5a623] px-5 py-3 text-sm font-semibold text-[#11131d]">
-                Join Forge
-              </Link>
-              <Link
-                href={buildForgeHandoffUrl({ returnPath: '/dashboard' })}
-                target="_top"
-                rel="noreferrer"
-                className="rounded-full border border-white/14 px-5 py-3 text-sm font-medium text-white"
-              >
-                Sign In Through Home
-              </Link>
-            </div>
-          </div>
-          <div className="rounded-[1.5rem] border border-white/10 bg-black/20 p-5">
-            <p className="text-sm font-semibold text-white">Subscribe for public Forge updates</p>
-            <div className="mt-4">
-              <SubscribeForm />
-            </div>
-          </div>
-        </div>
-      </section>
-    </div>
+      </div>
+    </section>
   )
 }

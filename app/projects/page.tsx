@@ -2,22 +2,15 @@
 
 import { useEffect, useMemo, useState, type FormEvent } from 'react'
 import Link from 'next/link'
+import { ArrowRight } from 'lucide-react'
 import { addDoc, collection, doc, onSnapshot, query, serverTimestamp, where } from 'firebase/firestore'
 import { useForgeAuth } from '@/components/AuthBootstrapper'
 import { useForgeContent } from '@/components/ForgeContentProvider'
-import { getLinkedParticipantNames } from '@/lib/forge-content'
+import { forgeCategories, getLinkedParticipantNames, getProjectCategory } from '@/lib/forge-content'
 import { db } from '@/lib/firebase'
-import type { ForgeTrackId } from '@/lib/types'
+import type { ForgeCategorySlug } from '@/lib/types'
 import { toCurrency } from '@/lib/utils'
-
-const filters: Array<{ id: ForgeTrackId | 'all'; label: string }> = [
-  { id: 'all', label: 'All projects' },
-  { id: 'fintech', label: 'Fintech' },
-  { id: 'software', label: 'Software' },
-  { id: 'fabrication', label: 'Fabrication' },
-  { id: 'it', label: 'Infrastructure' },
-  { id: 'content-production', label: 'Content' },
-]
+import { CategoryCard } from '@/components/CategoryCard'
 
 const inviteRoleOptions = ['developer', 'designer', 'strategist', 'project-manager', 'researcher'] as const
 const elevatedInviteRoles = new Set(['beam-admin', 'rag-lead'])
@@ -148,7 +141,7 @@ function formatRevenueShare(value: number | null) {
 }
 
 export default function ProjectsPage() {
-  const [filter, setFilter] = useState<ForgeTrackId | 'all'>('all')
+  const [selectedCategory, setSelectedCategory] = useState<ForgeCategorySlug>('digital')
   const [liveProjects, setLiveProjects] = useState<LiveBeamProject[]>([])
   const [isLiveProjectsLoading, setIsLiveProjectsLoading] = useState(false)
   const [liveProjectsError, setLiveProjectsError] = useState<string | null>(null)
@@ -162,7 +155,11 @@ export default function ProjectsPage() {
   const [inviteSuccessByProject, setInviteSuccessByProject] = useState<Record<string, string>>({})
   const { activeSession } = useForgeAuth()
   const { participants, projects: allProjects } = useForgeContent()
-  const projects = useMemo(() => allProjects.filter((project) => filter === 'all' || project.track === filter), [allProjects, filter])
+  const activeCategory = forgeCategories.find((category) => category.slug === selectedCategory) ?? forgeCategories[0]
+  const projects = useMemo(
+    () => allProjects.filter((project) => getProjectCategory(project) === selectedCategory),
+    [allProjects, selectedCategory]
+  )
   const isAuthenticated = Boolean(activeSession?.uid)
   const hasFirestoreConnection = Boolean(db)
   const canInviteParticipants = useMemo(
@@ -173,6 +170,21 @@ export default function ProjectsPage() {
     () => liveProjects.find((project) => project.id === inviteProjectId) ?? null,
     [inviteProjectId, liveProjects]
   )
+
+  useEffect(() => {
+    const syncCategoryFromUrl = () => {
+      const candidate = new URLSearchParams(window.location.search).get('category')
+      if (forgeCategories.some((category) => category.slug === candidate)) {
+        setSelectedCategory(candidate as ForgeCategorySlug)
+      } else {
+        setSelectedCategory('digital')
+      }
+    }
+
+    syncCategoryFromUrl()
+    window.addEventListener('popstate', syncCategoryFromUrl)
+    return () => window.removeEventListener('popstate', syncCategoryFromUrl)
+  }, [])
 
   useEffect(() => {
     if (!db || !activeSession?.uid) {
@@ -303,7 +315,7 @@ export default function ProjectsPage() {
         <p className="text-xs uppercase tracking-[0.22em] text-[#f5a623]">Project Board</p>
         <h1 className="mt-3 text-4xl font-semibold tracking-[-0.04em] text-white sm:text-5xl">Active and past Forge work across BEAM and partner delivery.</h1>
         <p className="mt-4 max-w-3xl text-sm leading-7 text-white/68 sm:text-base">
-          This board spans internal R&amp;D, NGO platform work, repair initiatives, and outside client engagements. Filter by track to isolate the current operating surface.
+          Move from client delivery to fabrication, AI production, financial infrastructure, and brand work through five connected operating categories.
         </p>
       </section>
 
@@ -314,7 +326,7 @@ export default function ProjectsPage() {
               <p className="text-xs uppercase tracking-[0.22em] text-[#f5a623]">Live BEAM Projects</p>
               <h2 className="mt-3 text-3xl font-semibold tracking-[-0.04em] text-white sm:text-4xl">Real-time Forge projects streamed from Firestore.</h2>
               <p className="mt-4 max-w-3xl text-sm leading-7 text-white/68 sm:text-base">
-                This panel shows BEAM book entries where `beamBookEntry` is true and `sourceNgo` is `forge`. The static Forge board remains below unchanged.
+                This panel shows BEAM book entries where `beamBookEntry` is true and `sourceNgo` is `forge`. Category workstreams are organized below.
               </p>
             </div>
             {canInviteParticipants ? (
@@ -406,31 +418,59 @@ export default function ProjectsPage() {
         </section>
       ) : null}
 
-      <section className="mt-8 flex flex-wrap gap-3">
-        {filters.map((option) => (
-          <button
-            key={option.id}
-            type="button"
-            onClick={() => setFilter(option.id)}
-            className={`rounded-full border px-4 py-2 text-sm transition ${
-              filter === option.id
-                ? 'border-[#f5a623]/40 bg-[#f5a623]/12 text-[#f5a623]'
-                : 'border-white/10 bg-white/[0.02] text-white/68 hover:border-white/24 hover:text-white'
-            }`}
-          >
-            {option.label}
-          </button>
-        ))}
+      <section className="mt-8 rounded-[1.75rem] border border-white/10 bg-white/[0.025] p-5" aria-label="Category filters">
+        <p className="text-[0.68rem] uppercase tracking-[0.24em] text-white/42">Category</p>
+        <div className="mt-3 flex flex-wrap gap-2">
+          {forgeCategories.map((category) => (
+            <Link
+              key={category.id}
+              href={`/projects?category=${category.slug}#category-projects`}
+              aria-current={category.slug === selectedCategory ? 'page' : undefined}
+              className="rounded-full border px-4 py-2 text-sm transition hover:bg-white/[0.05]"
+              style={{
+                color: category.slug === selectedCategory ? category.colorAccent : 'rgba(255,255,255,.68)',
+                borderColor: category.slug === selectedCategory ? `${category.colorAccent}88` : 'rgba(255,255,255,.1)',
+                backgroundColor: category.slug === selectedCategory ? `${category.colorAccent}14` : 'transparent',
+              }}
+            >
+              {category.label}
+            </Link>
+          ))}
+        </div>
       </section>
 
-      <section className="mt-8 grid gap-4 xl:grid-cols-2">
+      <section className="mt-6 grid gap-5 lg:grid-cols-2" aria-label="Forge project categories">
+        {forgeCategories.map((category) => {
+          const activeProjectCount = allProjects.filter(
+            (project) => project.phase === 'Active' && getProjectCategory(project) === category.slug
+          ).length
+          return (
+          <CategoryCard
+            key={category.id}
+            category={category}
+            activeProjectCount={activeProjectCount}
+            selected={category.slug === selectedCategory}
+          />
+          )
+        })}
+      </section>
+
+      <section className="mt-10" id="category-projects">
+        <div className="flex flex-col gap-3 border-b border-white/10 pb-6 sm:flex-row sm:items-end sm:justify-between">
+          <div>
+            <p className="text-xs uppercase tracking-[0.22em]" style={{ color: activeCategory.colorAccent }}>Selected category</p>
+            <h2 className="mt-2 text-3xl font-semibold text-white sm:text-4xl">{activeCategory.label}</h2>
+          </div>
+          <p className="max-w-xl text-sm leading-6 text-white/60">{activeCategory.description}</p>
+        </div>
+        <div className="mt-6 grid gap-4 xl:grid-cols-2">
         {projects.map((project) => {
           const linkedParticipants = getLinkedParticipantNames(participants, project.linkedParticipantIds)
 
           return (
-            <article key={project.id} className="rounded-[1.75rem] border border-white/10 bg-[#0d111d] p-6">
+            <article key={project.id} className="rounded-[1.75rem] border bg-[#0d111d] p-6 shadow-forge" style={{ borderColor: `${activeCategory.colorAccent}40` }}>
               <div className="flex flex-wrap items-center gap-3">
-                <span className="rounded-full border border-[#f5a623]/24 bg-[#f5a623]/10 px-3 py-1 text-xs uppercase tracking-[0.18em] text-[#f5a623]">
+                <span className="rounded-full border px-3 py-1 text-xs uppercase tracking-[0.18em]" style={{ color: activeCategory.colorAccent, borderColor: `${activeCategory.colorAccent}55`, backgroundColor: `${activeCategory.colorAccent}14` }}>
                   {project.phase}
                 </span>
                 <span className="text-xs uppercase tracking-[0.16em] text-white/42">{project.track}</span>
@@ -455,9 +495,20 @@ export default function ProjectsPage() {
                   ))}
                 </div>
               ) : null}
+              <div className="mt-6">
+                <Link href={isAuthenticated ? '/dashboard' : '/join'} className="inline-flex items-center gap-2 rounded-full border border-white/14 px-4 py-2 text-sm font-medium text-white transition hover:border-white/30">
+                  {isAuthenticated ? 'Open dashboard' : 'Apply'} <ArrowRight className="h-4 w-4" />
+                </Link>
+              </div>
             </article>
           )
         })}
+        {projects.length === 0 ? (
+          <div className="rounded-[1.75rem] border border-white/10 bg-[#0d111d] p-6 text-sm leading-7 text-white/68 xl:col-span-2">
+            This category is being staffed now. Explore the open roles above or apply to help shape its first published workstream.
+          </div>
+        ) : null}
+        </div>
       </section>
 
       <section className="mt-8 rounded-[2rem] border border-white/10 bg-white/[0.03] p-6">

@@ -2,6 +2,18 @@ import type { Timestamp } from 'firebase/firestore'
 import type { LucideIcon } from 'lucide-react'
 
 export type ForgeTrackId = 'fintech' | 'software' | 'fabrication' | 'it' | 'content-production'
+export type ForgeCategorySlug = 'digital' | 'fabrication' | 'ai-production' | 'fintech' | 'content'
+
+export interface ForgeCategory {
+  id: string
+  slug: ForgeCategorySlug
+  label: string
+  description: string
+  colorAccent: string
+  icon: LucideIcon
+  openRoles: string[]
+  trackIds: ForgeTrackId[]
+}
 
 export interface ForgeTrackEquityFormula {
   internalBEAM: string

@@ -12,6 +12,8 @@ import type {
   EditableForgeProject,
   EditableForgeTrack,
   ForgeContentSnapshot,
+  ForgeCategory,
+  ForgeCategorySlug,
   ForgeProject,
   ForgeSlide,
   ForgeTrack,
@@ -20,6 +22,51 @@ import type {
 } from '@/lib/types'
 
 export const forgeTrackIds: ForgeTrackId[] = ['fintech', 'software', 'fabrication', 'it', 'content-production']
+
+export const forgeCategories: ForgeCategory[] = [
+  {
+    id: 'category-digital', slug: 'digital', label: 'Digital Delivery', colorAccent: '#f5a623', icon: TerminalSquare,
+    description: 'Client websites, nonprofit IT overflow, and software delivery for the BEAM NGO network.',
+    openRoles: ['Frontend engineer', 'Full-stack engineer', 'Technical writer'], trackIds: ['software'],
+  },
+  {
+    id: 'category-fabrication', slug: 'fabrication', label: 'Fabrication & Repair', colorAccent: '#22d3ee', icon: Anvil,
+    description: 'Repair clinics, building systems, makerspace buildouts, and hands-on hardware prototyping.',
+    openRoles: ['Fabrication technician', 'Repair clinic lead', 'HVAC systems technician'], trackIds: ['fabrication'],
+  },
+  {
+    id: 'category-ai-production', slug: 'ai-production', label: 'AI Production Pipeline', colorAccent: '#a78bfa', icon: CircuitBoard,
+    description: 'GPU compute, ComfyUI video, transcription, and image generation for billed client deliverables.',
+    openRoles: ['ComfyUI pipeline operator', 'AI media producer', 'Transcription specialist'], trackIds: [],
+  },
+  {
+    id: 'category-fintech', slug: 'fintech', label: 'Fintech & Infrastructure', colorAccent: '#34d399', icon: Wrench,
+    description: 'Participant payroll rails, payout tracking, equity ledgers, and the systems that keep BEAM online.',
+    openRoles: ['Payments engineer', 'Ledger operations analyst', 'Systems operator'], trackIds: ['fintech', 'it'],
+  },
+  {
+    id: 'category-content', slug: 'content', label: 'Content & Brand', colorAccent: '#fb7185', icon: Clapperboard,
+    description: 'Identity clips, explainers, interviews, blueprint stills, and a durable social content pipeline.',
+    openRoles: ['Video editor', 'Motion designer', 'Brand asset producer'], trackIds: ['content-production'],
+  },
+]
+
+const projectCategoryOverrides: Record<string, ForgeCategorySlug> = {
+  'ngo-site-fleet': 'digital',
+  'mke-black-digital-platform': 'digital',
+  'runpod-comfyui-pipeline': 'ai-production',
+  'beam-identity-clips': 'content',
+  'equity-ledger-core': 'fintech',
+  'repair-clinic-pilot': 'fabrication',
+  'beam-network-hardening': 'fintech',
+  'wallet-launch-kit': 'fintech',
+}
+
+export function getProjectCategory(project: Pick<ForgeProject, 'id' | 'track'>): ForgeCategorySlug {
+  return projectCategoryOverrides[project.id]
+    ?? forgeCategories.find((category) => category.trackIds.includes(project.track))?.slug
+    ?? 'digital'
+}
 
 export const forgeSlides: ForgeSlide[] = [
   {
@@ -51,7 +98,7 @@ export const forgeSlides: ForgeSlide[] = [
     description:
       'The same operating surface handles equity ledgers, NGO site delivery, maker-space repair clinics, and the networks that keep the BEAM ecosystem online.',
     ctaLabel: 'Review Projects',
-    ctaHref: '/projects',
+    ctaHref: '/projects?category=digital',
     metric: 'Public + member workstreams',
     accent: 'from-emerald-400/20 via-emerald-400/6 to-transparent',
   },
@@ -138,6 +185,39 @@ export const forgeTracks: EditableForgeTrack[] = [
 ]
 
 export const forgeProjects: EditableForgeProject[] = [
+  {
+    id: 'mke-black-digital-platform',
+    title: 'MKE Black Digital Platform',
+    track: 'software',
+    phase: 'Active',
+    partner: 'MKE Black / RAG',
+    compensation: 'Paid client milestones',
+    summary: 'Website and application delivery for a RAG client, supported by a reusable Forge software workflow.',
+    outcomes: ['Production website', 'Application workflow', 'Reusable delivery documentation'],
+    linkedParticipantIds: [],
+  },
+  {
+    id: 'runpod-comfyui-pipeline',
+    title: 'RunPod ComfyUI Production Pipeline',
+    track: 'it',
+    phase: 'Active',
+    partner: 'Jordan / RAG Compute Layer',
+    compensation: 'Paid deliverable rate',
+    summary: 'A repeatable GPU production layer for client video, image generation, transcription, and delivery packaging.',
+    outcomes: ['RunPod environment', 'ComfyUI workflows', 'Billed deliverable handoff'],
+    linkedParticipantIds: [],
+  },
+  {
+    id: 'beam-identity-clips',
+    title: 'BEAM NGO Identity Clips',
+    track: 'content-production',
+    phase: 'Active',
+    partner: 'BEAM NGO Network',
+    compensation: 'Portfolio credit + solidarity fund share',
+    summary: 'A coordinated series of short identity clips that gives each BEAM NGO a clear, reusable public introduction.',
+    outcomes: ['15-second NGO clips', 'Social-ready exports', 'Shared visual language'],
+    linkedParticipantIds: [],
+  },
   {
     id: 'equity-ledger-core',
     title: 'Equity Ledger Core',
