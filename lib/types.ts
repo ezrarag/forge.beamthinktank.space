@@ -13,6 +13,8 @@ export interface ForgeCategory {
   icon: LucideIcon
   openRoles: string[]
   trackIds: ForgeTrackId[]
+  videoMp4: string
+  videoWebm: string
 }
 
 export interface ForgeTrackEquityFormula {

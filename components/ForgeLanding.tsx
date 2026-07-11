@@ -1,18 +1,66 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import Link from 'next/link'
 import { AnimatePresence, motion, useReducedMotion } from 'framer-motion'
-import { ArrowLeft, ArrowRight } from 'lucide-react'
+import { ArrowLeft, ArrowRight, ChevronDown, LogIn } from 'lucide-react'
 import { forgeCategories } from '@/lib/forge-content'
+import { buildForgeHandoffUrl } from '@/lib/beam-home'
 
 const AUTO_ADVANCE_MS = 6500
 
+const beamDestinations = [
+  { label: 'BEAM Home', detail: 'Network entry', href: 'https://home.beamthinktank.space' },
+  { label: 'Grounds', detail: 'Civic places', href: 'https://grounds.beamthinktank.space' },
+  { label: 'Orchestra', detail: 'Music and culture', href: 'https://orchestra.beamthinktank.space' },
+  { label: 'ReadyAimGo', detail: 'Roles and opportunities', href: 'https://www.readyaimgo.biz' },
+]
+
+const forgeEntrances = [
+  { label: 'Returning member', detail: 'Open your dashboard', role: 'community' as const },
+  { label: 'Student', detail: 'Cohorts and project work', role: 'student' as const },
+  { label: 'Community builder', detail: 'Independent collaboration', role: 'community' as const },
+  { label: 'Business or partner', detail: 'Client and sponsor access', role: 'business' as const },
+]
+
 export function ForgeLanding() {
   const [activeIndex, setActiveIndex] = useState(0)
+  const [openMenu, setOpenMenu] = useState<'beam' | 'forge' | null>(null)
+  const [playingVideoSlug, setPlayingVideoSlug] = useState<string | null>(null)
+  const [videoErrorSlugs, setVideoErrorSlugs] = useState<Set<string>>(() => new Set())
+  const menuAreaRef = useRef<HTMLDivElement>(null)
+  const videoRef = useRef<HTMLVideoElement>(null)
+  const videoTimeoutRef = useRef<number | null>(null)
   const prefersReducedMotion = useReducedMotion()
   const activeCategory = forgeCategories[activeIndex]
   const ActiveIcon = activeCategory.icon
+  const isVideoPlaying = playingVideoSlug === activeCategory.slug
+  const hasVideoError = videoErrorSlugs.has(activeCategory.slug)
+
+  const stopCategoryVideo = useCallback(() => {
+    if (videoTimeoutRef.current !== null) {
+      window.clearTimeout(videoTimeoutRef.current)
+      videoTimeoutRef.current = null
+    }
+    setPlayingVideoSlug(null)
+    videoRef.current?.pause()
+  }, [])
+
+  const playCategoryVideo = useCallback(async () => {
+    const video = videoRef.current
+    if (!video || hasVideoError || prefersReducedMotion) return
+
+    if (videoTimeoutRef.current !== null) window.clearTimeout(videoTimeoutRef.current)
+    video.currentTime = 0
+
+    try {
+      await video.play()
+      setPlayingVideoSlug(activeCategory.slug)
+      videoTimeoutRef.current = window.setTimeout(stopCategoryVideo, 3200)
+    } catch {
+      setPlayingVideoSlug(null)
+    }
+  }, [activeCategory.slug, hasVideoError, prefersReducedMotion, stopCategoryVideo])
 
   useEffect(() => {
     if (prefersReducedMotion) return
@@ -24,6 +72,27 @@ export function ForgeLanding() {
     return () => window.clearInterval(intervalId)
   }, [prefersReducedMotion])
 
+  useEffect(() => () => {
+    if (videoTimeoutRef.current !== null) window.clearTimeout(videoTimeoutRef.current)
+  }, [])
+
+  useEffect(() => {
+    function closeFromOutside(event: PointerEvent) {
+      if (!menuAreaRef.current?.contains(event.target as Node)) setOpenMenu(null)
+    }
+
+    function closeFromEscape(event: KeyboardEvent) {
+      if (event.key === 'Escape') setOpenMenu(null)
+    }
+
+    document.addEventListener('pointerdown', closeFromOutside)
+    document.addEventListener('keydown', closeFromEscape)
+    return () => {
+      document.removeEventListener('pointerdown', closeFromOutside)
+      document.removeEventListener('keydown', closeFromEscape)
+    }
+  }, [])
+
   function showPrevious() {
     setActiveIndex((current) => (current - 1 + forgeCategories.length) % forgeCategories.length)
   }
@@ -33,7 +102,7 @@ export function ForgeLanding() {
   }
 
   return (
-    <section className="relative isolate min-h-[calc(100dvh-5rem)] overflow-hidden bg-[#070912]" aria-roledescription="carousel" aria-label="Forge project categories">
+    <section className="relative isolate min-h-dvh overflow-hidden bg-[#070912]" aria-roledescription="carousel" aria-label="Forge project categories">
       <AnimatePresence mode="wait" initial={false}>
         <motion.div
           key={activeCategory.slug}
@@ -53,17 +122,93 @@ export function ForgeLanding() {
           <div className="absolute inset-0 bg-forge-grid bg-[size:64px_64px] opacity-[0.11]" />
           <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(4,5,10,.88)_0%,rgba(4,5,10,.38)_58%,rgba(4,5,10,.68)_100%)]" />
           <div
-            className="absolute right-[8%] top-1/2 flex h-[42vw] max-h-[35rem] min-h-72 w-[42vw] min-w-72 -translate-y-1/2 items-center justify-center rounded-full border opacity-20 blur-[0.5px]"
+            className="absolute right-[8%] top-1/2 flex h-[42vw] max-h-[35rem] min-h-72 w-[42vw] min-w-72 -translate-y-1/2 items-center justify-center overflow-hidden rounded-full border opacity-25 blur-[0.5px]"
             style={{ borderColor: activeCategory.colorAccent, boxShadow: `0 0 150px ${activeCategory.colorAccent}33` }}
           >
-            <ActiveIcon className="h-1/2 w-1/2" style={{ color: activeCategory.colorAccent }} strokeWidth={0.65} aria-hidden="true" />
+            <ActiveIcon
+              className={`h-1/2 w-1/2 transition-opacity duration-200 ${isVideoPlaying ? 'opacity-0' : 'opacity-100'}`}
+              style={{ color: activeCategory.colorAccent }}
+              strokeWidth={0.65}
+              aria-hidden="true"
+            />
+            <video
+              key={activeCategory.slug}
+              ref={videoRef}
+              muted
+              playsInline
+              preload="metadata"
+              aria-hidden="true"
+              onCanPlay={() => { void playCategoryVideo() }}
+              onEnded={stopCategoryVideo}
+              onError={() => {
+                setVideoErrorSlugs((current) => new Set(current).add(activeCategory.slug))
+                stopCategoryVideo()
+              }}
+              className={`absolute inset-0 h-full w-full object-cover transition-opacity duration-200 ${isVideoPlaying && !hasVideoError ? 'opacity-100' : 'opacity-0'}`}
+              style={{ mixBlendMode: 'screen' }}
+            >
+              <source src={activeCategory.videoWebm} type="video/webm" />
+              <source src={activeCategory.videoMp4} type="video/mp4" />
+            </video>
+            <div
+              className={`pointer-events-none absolute inset-0 transition-opacity duration-200 ${isVideoPlaying ? 'opacity-100' : 'opacity-0'}`}
+              style={{ background: `radial-gradient(circle, ${activeCategory.colorAccent}40 0%, transparent 72%)`, mixBlendMode: 'screen' }}
+            />
           </div>
         </motion.div>
       </AnimatePresence>
 
-      <div className="relative z-10 mx-auto flex min-h-[calc(100dvh-5rem)] max-w-7xl flex-col justify-between px-5 py-8 sm:px-8 sm:py-10 lg:px-12">
+      <div className="relative z-10 mx-auto flex min-h-dvh max-w-7xl flex-col justify-between px-5 py-8 sm:px-8 sm:py-10 lg:px-12">
         <div className="flex items-center justify-between gap-5 text-[0.68rem] uppercase tracking-[0.28em] text-white/58">
-          <p><span className="text-white">BEAM</span><span className="mx-4 text-white/30">·</span>Forge</p>
+          <div ref={menuAreaRef} className="relative flex items-center">
+            <button
+              type="button"
+              onClick={() => setOpenMenu((current) => current === 'beam' ? null : 'beam')}
+              aria-expanded={openMenu === 'beam'}
+              aria-controls="beam-network-menu"
+              className="inline-flex items-center gap-2 py-2 text-white transition hover:text-[#f5a623]"
+            >
+              BEAM <ChevronDown className={`h-3 w-3 transition ${openMenu === 'beam' ? 'rotate-180' : ''}`} aria-hidden="true" />
+            </button>
+            <span className="mx-3 text-white/30 sm:mx-4">·</span>
+            <button
+              type="button"
+              onClick={() => setOpenMenu((current) => current === 'forge' ? null : 'forge')}
+              aria-expanded={openMenu === 'forge'}
+              aria-controls="forge-entry-menu"
+              className="inline-flex items-center gap-2 py-2 text-white transition hover:text-[#f5a623]"
+            >
+              Forge <ChevronDown className={`h-3 w-3 transition ${openMenu === 'forge' ? 'rotate-180' : ''}`} aria-hidden="true" />
+            </button>
+
+            {openMenu === 'beam' ? (
+              <div id="beam-network-menu" className="pixel-menu absolute left-0 top-full z-30 mt-3 w-[min(21rem,calc(100vw-2.5rem))] overflow-hidden rounded-2xl border border-white/18 bg-[#090d16]/95 p-2 shadow-2xl backdrop-blur-xl">
+                <p className="px-3 pb-2 pt-2 text-[0.62rem] tracking-[0.24em] text-[#f5a623]">BEAM network</p>
+                {beamDestinations.map((destination) => (
+                  <a key={destination.label} href={destination.href} className="pixel-menu-item flex items-center justify-between gap-4 rounded-xl px-3 py-3 normal-case tracking-normal transition hover:bg-white/[0.07]">
+                    <span className="text-sm font-semibold text-white">{destination.label}</span>
+                    <span className="text-right text-xs text-white/42">{destination.detail}</span>
+                  </a>
+                ))}
+              </div>
+            ) : null}
+
+            {openMenu === 'forge' ? (
+              <div id="forge-entry-menu" className="pixel-menu absolute left-0 top-full z-30 mt-3 w-[min(22rem,calc(100vw-2.5rem))] overflow-hidden rounded-2xl border border-white/18 bg-[#090d16]/95 p-2 shadow-2xl backdrop-blur-xl sm:left-20">
+                <p className="flex items-center gap-2 px-3 pb-2 pt-2 text-[0.62rem] tracking-[0.24em] text-[#f5a623]"><LogIn className="h-3.5 w-3.5" aria-hidden="true" /> Enter Forge</p>
+                {forgeEntrances.map((entrance, index) => (
+                  <a
+                    key={`${entrance.label}-${index}`}
+                    href={buildForgeHandoffUrl({ role: entrance.role, returnPath: '/dashboard' })}
+                    className="pixel-menu-item flex items-center justify-between gap-4 rounded-xl px-3 py-3 normal-case tracking-normal transition hover:bg-white/[0.07]"
+                  >
+                    <span className="text-sm font-semibold text-white">{entrance.label}</span>
+                    <span className="text-right text-xs text-white/42">{entrance.detail}</span>
+                  </a>
+                ))}
+              </div>
+            ) : null}
+          </div>
           <p aria-label={`Slide ${activeIndex + 1} of ${forgeCategories.length}`}>
             <span className="text-white">{String(activeIndex + 1).padStart(2, '0')}</span>
             <span className="mx-2 text-white/28">/</span>
