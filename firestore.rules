@@ -1,0 +1,80 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function signedIn() {
+      return request.auth != null;
+    }
+
+    function isForgeAdmin() {
+      return signedIn()
+        && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.roles.hasAny(['beam-admin', 'rag-lead']);
+    }
+
+    match /memberships/{uid} {
+      allow read, write: if signedIn() && request.auth.uid == uid;
+    }
+
+    match /beamAssets/{doc} {
+      allow read, write: if signedIn();
+    }
+
+    match /ragProperties/{doc} {
+      allow read, write: if signedIn();
+    }
+
+    match /locations/{doc} {
+      allow read, write: if signedIn();
+    }
+
+    match /projects/{projectId} {
+      allow read: if resource.data.beamBookEntry == true && resource.data.sourceNgo == 'forge';
+      allow update: if isForgeAdmin();
+    }
+
+    match /ragLeads/{leadId} {
+      allow create: if request.resource.data.domain == 'forge'
+        && request.resource.data.status == 'NEW'
+        && request.resource.data.orgName is string
+        && request.resource.data.contactName is string
+        && request.resource.data.contactEmail is string;
+      allow read, update: if signedIn();
+    }
+
+    match /projectApplications/{applicationId} {
+      allow create: if signedIn() && request.resource.data.applicantUid == request.auth.uid;
+      allow get: if signedIn() && (resource.data.applicantUid == request.auth.uid || isForgeAdmin());
+      allow list, update: if isForgeAdmin();
+    }
+
+    match /projectMessages/{messageId} {
+      allow create: if signedIn() && request.resource.data.senderUid == request.auth.uid;
+      allow read: if signedIn() && (resource.data.senderUid == request.auth.uid || resource.data.recipientUid == request.auth.uid);
+      allow update: if signedIn() && resource.data.recipientUid == request.auth.uid;
+    }
+
+    match /projectInvites/{inviteId} {
+      allow read, create, update: if isForgeAdmin();
+    }
+
+    match /users/{uid} {
+      allow read: if signedIn();
+      allow create, update: if signedIn() && (request.auth.uid == uid || isForgeAdmin());
+
+      match /profiles/{profileId} {
+        allow read: if signedIn();
+        allow create, update: if signedIn() && (request.auth.uid == uid || isForgeAdmin());
+      }
+    }
+
+    match /forgeAdmin/{docId} {
+      allow read: if true;
+      allow write: if isForgeAdmin();
+    }
+
+    match /forgeContentProjects/{projectId} {
+      allow read: if true;
+      allow create: if request.resource.data.status == 'submitted';
+      allow update: if isForgeAdmin();
+    }
+  }
+}

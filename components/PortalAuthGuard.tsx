@@ -2,6 +2,7 @@
 
 import { useEffect, type ReactNode } from 'react'
 import { useForgeAuth } from '@/components/AuthBootstrapper'
+import { buildForgeHandoffUrl } from '@/lib/beam-home'
 
 export function PortalAuthGuard({ children }: { children: ReactNode }) {
   const { activeSession, isReady } = useForgeAuth()
@@ -12,7 +13,7 @@ export function PortalAuthGuard({ children }: { children: ReactNode }) {
     }
 
     const timeoutId = window.setTimeout(() => {
-      window.location.replace('/?signin=true')
+      window.location.replace(buildForgeHandoffUrl({ role: 'community', returnPath: window.location.pathname }))
     }, 0)
 
     return () => {
