@@ -28,26 +28,31 @@ export const forgeCategories: ForgeCategory[] = [
     id: 'category-digital', slug: 'digital', label: 'Digital Delivery', colorAccent: '#f5a623', icon: TerminalSquare,
     description: 'Client websites, nonprofit IT overflow, and software delivery for the BEAM NGO network.',
     openRoles: ['Frontend engineer', 'Full-stack engineer', 'Technical writer'], trackIds: ['software'],
+    videoMp4: '/videos/door-01-digital.mp4', videoWebm: '/videos/door-01-digital.webm',
   },
   {
     id: 'category-fabrication', slug: 'fabrication', label: 'Fabrication & Repair', colorAccent: '#22d3ee', icon: Anvil,
     description: 'Repair clinics, building systems, makerspace buildouts, and hands-on hardware prototyping.',
     openRoles: ['Fabrication technician', 'Repair clinic lead', 'HVAC systems technician'], trackIds: ['fabrication'],
+    videoMp4: '/videos/door-02-fabrication.mp4', videoWebm: '/videos/door-02-fabrication.webm',
   },
   {
     id: 'category-ai-production', slug: 'ai-production', label: 'AI Production Pipeline', colorAccent: '#a78bfa', icon: CircuitBoard,
     description: 'GPU compute, ComfyUI video, transcription, and image generation for billed client deliverables.',
     openRoles: ['ComfyUI pipeline operator', 'AI media producer', 'Transcription specialist'], trackIds: [],
+    videoMp4: '/videos/door-03-ai-production.mp4', videoWebm: '/videos/door-03-ai-production.webm',
   },
   {
     id: 'category-fintech', slug: 'fintech', label: 'Fintech & Infrastructure', colorAccent: '#34d399', icon: Wrench,
     description: 'Participant payroll rails, payout tracking, equity ledgers, and the systems that keep BEAM online.',
     openRoles: ['Payments engineer', 'Ledger operations analyst', 'Systems operator'], trackIds: ['fintech', 'it'],
+    videoMp4: '/videos/door-04-fintech.mp4', videoWebm: '/videos/door-04-fintech.webm',
   },
   {
     id: 'category-content', slug: 'content', label: 'Content & Brand', colorAccent: '#fb7185', icon: Clapperboard,
     description: 'Identity clips, explainers, interviews, blueprint stills, and a durable social content pipeline.',
     openRoles: ['Video editor', 'Motion designer', 'Brand asset producer'], trackIds: ['content-production'],
+    videoMp4: '/videos/door-05-content.mp4', videoWebm: '/videos/door-05-content.webm',
   },
 ]
 

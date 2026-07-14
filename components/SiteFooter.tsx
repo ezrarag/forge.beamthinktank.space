@@ -26,6 +26,12 @@ export function SiteFooter() {
             <Link href="/projects" className="block hover:text-white">
               Projects
             </Link>
+            <Link href="/services-survey" className="block hover:text-white">
+              Services Survey
+            </Link>
+            <Link href="/portal/leads" className="block hover:text-white">
+              Lead Responses
+            </Link>
             <Link href="/dashboard" className="block hover:text-white">
               Dashboard
             </Link>

@@ -55,6 +55,22 @@ export interface ForgeMembershipRecord {
   status: 'active'
 }
 
+const beamProfileDefaults = {
+  bio: '',
+  skills: [] as string[],
+  availability: 'project-basis',
+  preferredRoles: [] as string[],
+  workStyle: '',
+  portfolioUrl: '',
+  githubHandle: '',
+  contactPreference: 'email',
+  activeProjectIds: [] as string[],
+}
+
+function missingProfileDefaults(data: Record<string, unknown> | undefined) {
+  return Object.fromEntries(Object.entries(beamProfileDefaults).filter(([key]) => !(key in (data ?? {}))))
+}
+
 function decodeBase64Url(value: string) {
   if (typeof window === 'undefined') return null
 
@@ -267,6 +283,7 @@ async function ensureForgeMembershipWithFirebaseUser(user: User) {
     photoURL: user.photoURL ?? null,
     memberships: arrayUnion('forge'),
     lastLoginAt: serverTimestamp(),
+    ...missingProfileDefaults(snapshot.exists() ? snapshot.data() : undefined),
   }
 
   if (!Array.isArray(existingRoles) || existingRoles.length === 0) {
@@ -277,28 +294,31 @@ async function ensureForgeMembershipWithFirebaseUser(user: User) {
 }
 
 async function ensureForgeMembershipWithBeamReturn(session: BeamReturnSession) {
-  const currentUserDoc = await readFirestoreDocumentWithBeamToken<{ memberships?: unknown[] }>(
+  const currentUserDoc = await readFirestoreDocumentWithBeamToken<Record<string, unknown>>(
     session.idToken,
     `users/${session.uid}`
   )
 
-  if (hasForgeMembership(currentUserDoc?.memberships)) {
-    return
-  }
-
   const document = getFirestoreDocumentName(`users/${session.uid}`)
   if (!document) return
+
+  const profileDefaults = missingProfileDefaults(currentUserDoc ?? undefined)
+  const needsMembership = !hasForgeMembership(currentUserDoc?.memberships)
+  const updateFields: Record<string, unknown> = { ...profileDefaults }
+  if (needsMembership) {
+    updateFields.memberships = [...(Array.isArray(currentUserDoc?.memberships) ? currentUserDoc.memberships : []), buildForgeMembershipRecord()]
+  }
+  const fieldPaths = Object.keys(updateFields)
+  if (!fieldPaths.length) return
 
   await commitFirestoreWritesWithBeamToken(session.idToken, [
     {
       update: {
         name: document,
-        fields: toFirestoreFields({
-          memberships: [...(Array.isArray(currentUserDoc?.memberships) ? currentUserDoc.memberships : []), buildForgeMembershipRecord()],
-        }),
+        fields: toFirestoreFields(updateFields),
       },
       updateMask: {
-        fieldPaths: ['memberships'],
+        fieldPaths,
       },
     },
   ])

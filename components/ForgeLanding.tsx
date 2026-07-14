@@ -1,18 +1,50 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import Link from 'next/link'
 import { AnimatePresence, motion, useReducedMotion } from 'framer-motion'
 import { ArrowLeft, ArrowRight } from 'lucide-react'
 import { forgeCategories } from '@/lib/forge-content'
+import { ForgeWordmarkMenu } from '@/components/ForgeWordmarkMenu'
 
 const AUTO_ADVANCE_MS = 6500
 
 export function ForgeLanding() {
   const [activeIndex, setActiveIndex] = useState(0)
+  const [playingVideoSlug, setPlayingVideoSlug] = useState<string | null>(null)
+  const [videoErrorSlugs, setVideoErrorSlugs] = useState<Set<string>>(() => new Set())
+  const videoRef = useRef<HTMLVideoElement>(null)
+  const videoTimeoutRef = useRef<number | null>(null)
   const prefersReducedMotion = useReducedMotion()
   const activeCategory = forgeCategories[activeIndex]
   const ActiveIcon = activeCategory.icon
+  const isVideoPlaying = playingVideoSlug === activeCategory.slug
+  const hasVideoError = videoErrorSlugs.has(activeCategory.slug)
+
+  const stopCategoryVideo = useCallback(() => {
+    if (videoTimeoutRef.current !== null) {
+      window.clearTimeout(videoTimeoutRef.current)
+      videoTimeoutRef.current = null
+    }
+    setPlayingVideoSlug(null)
+    videoRef.current?.pause()
+  }, [])
+
+  const playCategoryVideo = useCallback(async () => {
+    const video = videoRef.current
+    if (!video || hasVideoError || prefersReducedMotion) return
+
+    if (videoTimeoutRef.current !== null) window.clearTimeout(videoTimeoutRef.current)
+    video.currentTime = 0
+
+    try {
+      await video.play()
+      setPlayingVideoSlug(activeCategory.slug)
+      videoTimeoutRef.current = window.setTimeout(stopCategoryVideo, 3200)
+    } catch {
+      setPlayingVideoSlug(null)
+    }
+  }, [activeCategory.slug, hasVideoError, prefersReducedMotion, stopCategoryVideo])
 
   useEffect(() => {
     if (prefersReducedMotion) return
@@ -24,6 +56,10 @@ export function ForgeLanding() {
     return () => window.clearInterval(intervalId)
   }, [prefersReducedMotion])
 
+  useEffect(() => () => {
+    if (videoTimeoutRef.current !== null) window.clearTimeout(videoTimeoutRef.current)
+  }, [])
+
   function showPrevious() {
     setActiveIndex((current) => (current - 1 + forgeCategories.length) % forgeCategories.length)
   }
@@ -33,7 +69,7 @@ export function ForgeLanding() {
   }
 
   return (
-    <section className="relative isolate min-h-[calc(100dvh-5rem)] overflow-hidden bg-[#070912]" aria-roledescription="carousel" aria-label="Forge project categories">
+    <section className="relative isolate min-h-dvh overflow-hidden bg-[#070912]" aria-roledescription="carousel" aria-label="Forge project categories">
       <AnimatePresence mode="wait" initial={false}>
         <motion.div
           key={activeCategory.slug}
@@ -53,17 +89,45 @@ export function ForgeLanding() {
           <div className="absolute inset-0 bg-forge-grid bg-[size:64px_64px] opacity-[0.11]" />
           <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(4,5,10,.88)_0%,rgba(4,5,10,.38)_58%,rgba(4,5,10,.68)_100%)]" />
           <div
-            className="absolute right-[8%] top-1/2 flex h-[42vw] max-h-[35rem] min-h-72 w-[42vw] min-w-72 -translate-y-1/2 items-center justify-center rounded-full border opacity-20 blur-[0.5px]"
+            className="absolute right-[8%] top-1/2 flex h-[42vw] max-h-[35rem] min-h-72 w-[42vw] min-w-72 -translate-y-1/2 items-center justify-center overflow-hidden rounded-full border opacity-25 blur-[0.5px]"
             style={{ borderColor: activeCategory.colorAccent, boxShadow: `0 0 150px ${activeCategory.colorAccent}33` }}
           >
-            <ActiveIcon className="h-1/2 w-1/2" style={{ color: activeCategory.colorAccent }} strokeWidth={0.65} aria-hidden="true" />
+            <ActiveIcon
+              className={`h-1/2 w-1/2 transition-opacity duration-200 ${isVideoPlaying ? 'opacity-0' : 'opacity-100'}`}
+              style={{ color: activeCategory.colorAccent }}
+              strokeWidth={0.65}
+              aria-hidden="true"
+            />
+            <video
+              key={activeCategory.slug}
+              ref={videoRef}
+              muted
+              playsInline
+              preload="metadata"
+              aria-hidden="true"
+              onCanPlay={() => { void playCategoryVideo() }}
+              onEnded={stopCategoryVideo}
+              onError={() => {
+                setVideoErrorSlugs((current) => new Set(current).add(activeCategory.slug))
+                stopCategoryVideo()
+              }}
+              className={`absolute inset-0 h-full w-full object-cover transition-opacity duration-200 ${isVideoPlaying && !hasVideoError ? 'opacity-100' : 'opacity-0'}`}
+              style={{ mixBlendMode: 'screen' }}
+            >
+              <source src={activeCategory.videoWebm} type="video/webm" />
+              <source src={activeCategory.videoMp4} type="video/mp4" />
+            </video>
+            <div
+              className={`pointer-events-none absolute inset-0 transition-opacity duration-200 ${isVideoPlaying ? 'opacity-100' : 'opacity-0'}`}
+              style={{ background: `radial-gradient(circle, ${activeCategory.colorAccent}40 0%, transparent 72%)`, mixBlendMode: 'screen' }}
+            />
           </div>
         </motion.div>
       </AnimatePresence>
 
-      <div className="relative z-10 mx-auto flex min-h-[calc(100dvh-5rem)] max-w-7xl flex-col justify-between px-5 py-8 sm:px-8 sm:py-10 lg:px-12">
+      <div className="relative z-10 mx-auto flex min-h-dvh max-w-7xl flex-col justify-between px-5 py-8 sm:px-8 sm:py-10 lg:px-12">
         <div className="flex items-center justify-between gap-5 text-[0.68rem] uppercase tracking-[0.28em] text-white/58">
-          <p><span className="text-white">BEAM</span><span className="mx-4 text-white/30">·</span>Forge</p>
+          <ForgeWordmarkMenu />
           <p aria-label={`Slide ${activeIndex + 1} of ${forgeCategories.length}`}>
             <span className="text-white">{String(activeIndex + 1).padStart(2, '0')}</span>
             <span className="mx-2 text-white/28">/</span>

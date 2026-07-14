@@ -1,0 +1,21 @@
+{
+  "indexes": [
+    {
+      "collectionGroup": "projects",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "beamBookEntry", "order": "ASCENDING" },
+        { "fieldPath": "sourceNgo", "order": "ASCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "projectApplications",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "status", "order": "ASCENDING" },
+        { "fieldPath": "createdAt", "order": "DESCENDING" }
+      ]
+    }
+  ],
+  "fieldOverrides": []
+}

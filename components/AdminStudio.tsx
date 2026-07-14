@@ -26,6 +26,7 @@ import type {
   ForgeSlide,
   MemberAssignment,
 } from '@/lib/types'
+import { ProjectApplicationsAdmin } from '@/components/ProjectApplicationsAdmin'
 
 const trackOptions: EditableForgeTrack['id'][] = ['fintech', 'software', 'fabrication', 'it', 'content-production']
 const projectPhases: EditableForgeProject['phase'][] = ['Active', 'Pipeline', 'Archived']
@@ -344,6 +345,8 @@ export function AdminStudio() {
         {!isReady ? <p className="mt-5 text-sm text-white/48">Connecting to saved admin content...</p> : null}
         {notice ? <div className="mt-5">{<StatusBanner tone={notice.tone} message={notice.message} />}</div> : null}
       </section>
+
+      <ProjectApplicationsAdmin />
 
       <section className="rounded-[2rem] border border-white/10 bg-white/[0.03] p-6 sm:p-8">
         <SectionTitle icon={Users} label="Participants" description="Create participant records once, then attach them to tracks, projects, feed entries, and assignments." />

@@ -187,7 +187,7 @@ export default function ProjectsPage() {
   }, [])
 
   useEffect(() => {
-    if (!db || !activeSession?.uid) {
+    if (!db) {
       setLiveProjects([])
       setIsLiveProjectsLoading(false)
       setLiveProjectsError(null)
@@ -221,7 +221,7 @@ export default function ProjectsPage() {
     )
 
     return unsubscribe
-  }, [activeSession?.uid])
+  }, [])
 
   useEffect(() => {
     if (!db || !activeSession?.uid) {
@@ -398,6 +398,12 @@ export default function ProjectsPage() {
                     )}
                   </div>
                   <div className="mt-5 flex flex-wrap items-center gap-3">
+                    <Link
+                      href={`/projects/${project.id}`}
+                      className="rounded-full border border-white/14 px-4 py-2 text-sm font-medium text-white transition hover:border-white/30"
+                    >
+                      View project
+                    </Link>
                     {canInviteParticipants ? (
                       <button
                         type="button"
@@ -503,6 +509,17 @@ export default function ProjectsPage() {
             </article>
           )
         })}
+        {selectedCategory === 'digital' ? liveProjects.map((project) => (
+          <article key={`live-${project.id}`} className="rounded-[1.75rem] border border-[#f5a623]/25 bg-[#0d111d] p-6 shadow-forge">
+            <div className="flex flex-wrap items-center gap-3">
+              <span className="rounded-full border border-[#f5a623]/30 bg-[#f5a623]/10 px-3 py-1 text-xs uppercase tracking-[0.18em] text-[#f5a623]">{project.status}</span>
+              <span className="text-xs uppercase tracking-[0.16em] text-white/42">Live client project</span>
+            </div>
+            <h2 className="mt-4 text-3xl font-semibold text-white">{project.clientName}</h2>
+            <p className="mt-3 text-sm leading-7 text-white/68">{project.deliverables.length ? project.deliverables.join(' · ') : 'Scope and deliverables are being prepared.'}</p>
+            <div className="mt-6"><Link href={`/projects/${project.id}`} className="inline-flex items-center gap-2 rounded-full bg-[#f5a623] px-4 py-2 text-sm font-semibold text-[#11131d]">View project <ArrowRight className="h-4 w-4" /></Link></div>
+          </article>
+        )) : null}
         {projects.length === 0 ? (
           <div className="rounded-[1.75rem] border border-white/10 bg-[#0d111d] p-6 text-sm leading-7 text-white/68 xl:col-span-2">
             This category is being staffed now. Explore the open roles above or apply to help shape its first published workstream.

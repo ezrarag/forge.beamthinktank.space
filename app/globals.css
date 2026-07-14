@@ -23,3 +23,67 @@ body {
   @apply rounded-[1.5rem] border border-white/10 bg-white/[0.03];
 }
 
+@keyframes pixel-forge-in {
+  0% {
+    opacity: 0;
+    transform: translateY(-8px) scale(0.94);
+    clip-path: polygon(0 0, 18% 0, 18% 18%, 0 18%);
+    filter: blur(7px) contrast(2.2);
+  }
+  25% {
+    opacity: 0.55;
+    clip-path: polygon(0 0, 58% 0, 58% 20%, 82% 20%, 82% 43%, 38% 43%, 38% 68%, 0 68%);
+  }
+  55% {
+    opacity: 0.82;
+    clip-path: polygon(0 0, 100% 0, 100% 58%, 78% 58%, 78% 82%, 44% 82%, 44% 100%, 0 100%);
+    filter: blur(2px) contrast(1.5);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+    clip-path: polygon(0 0, 100% 0, 100% 100%, 0 100%);
+    filter: none;
+  }
+}
+
+@keyframes pixel-scan-out {
+  0% { opacity: 0.7; transform: translateX(-100%); }
+  100% { opacity: 0; transform: translateX(100%); }
+}
+
+.pixel-menu {
+  transform-origin: top left;
+  animation: pixel-forge-in 420ms steps(7, end) both;
+  image-rendering: pixelated;
+}
+
+.pixel-menu::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 2;
+  background:
+    repeating-linear-gradient(0deg, transparent 0 7px, rgba(245, 166, 35, 0.13) 7px 8px),
+    repeating-linear-gradient(90deg, transparent 0 7px, rgba(255, 255, 255, 0.08) 7px 8px);
+  mix-blend-mode: screen;
+  animation: pixel-scan-out 520ms steps(8, end) both;
+}
+
+.pixel-menu-item {
+  animation: pixel-forge-in 300ms steps(5, end) both;
+}
+
+.pixel-menu-item:nth-of-type(2) { animation-delay: 45ms; }
+.pixel-menu-item:nth-of-type(3) { animation-delay: 80ms; }
+.pixel-menu-item:nth-of-type(4) { animation-delay: 115ms; }
+.pixel-menu-item:nth-of-type(5) { animation-delay: 150ms; }
+
+@media (prefers-reduced-motion: reduce) {
+  .pixel-menu,
+  .pixel-menu::before,
+  .pixel-menu-item {
+    animation: none;
+  }
+}
