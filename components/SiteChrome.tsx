@@ -2,8 +2,7 @@
 
 import type { ReactNode } from 'react'
 import { usePathname } from 'next/navigation'
-import { AppHeader } from '@/components/AppHeader'
-import { SiteFooter } from '@/components/SiteFooter'
+import { MinimalHeader } from '@/components/MinimalHeader'
 
 export function SiteChrome({ children }: { children: ReactNode }) {
   const pathname = usePathname()
@@ -11,9 +10,8 @@ export function SiteChrome({ children }: { children: ReactNode }) {
 
   return (
     <>
-      {isCarouselHome ? null : <AppHeader />}
+      {isCarouselHome ? null : <MinimalHeader />}
       <main className="relative z-10">{children}</main>
-      {isCarouselHome ? null : <SiteFooter />}
     </>
   )
 }
