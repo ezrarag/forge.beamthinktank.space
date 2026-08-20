@@ -13,6 +13,7 @@ import {
   Cloud,
   Globe,
   HardHat,
+  LogOut,
   MapPin,
   Plus,
   Search,
@@ -23,8 +24,8 @@ import {
   UserCheck,
 } from 'lucide-react'
 import { doc, getDoc } from 'firebase/firestore'
-import { auth, db, GoogleAuthProvider, signInWithPopup } from '@/lib/firebase'
-import { ensureForgeMembership, readBeamReturnSession } from '@/lib/beam-auth'
+import { auth, db, GoogleAuthProvider, signInWithPopup, signOut } from '@/lib/firebase'
+import { clearBeamReturnSession, ensureForgeMembership, readBeamReturnSession } from '@/lib/beam-auth'
 import { useForgeAuth } from '@/components/AuthBootstrapper'
 import {
   buildInitialParticipantProfile,
@@ -96,6 +97,14 @@ export function ForgeParticipantWorkspace() {
       setIsSigningIn(false)
     }
   }, [router])
+
+  const handleLogout = useCallback(async () => {
+    if (auth) {
+      await signOut(auth)
+    }
+    clearBeamReturnSession()
+    window.location.href = '/'
+  }, [])
 
   useEffect(() => {
     let isCancelled = false
@@ -340,11 +349,20 @@ export function ForgeParticipantWorkspace() {
                     {isSigningIn ? 'Connecting...' : 'Sign in with Google'}
                   </button>
                 ) : (
-                  <div className="flex items-center justify-between text-[11px] text-emerald-300 bg-emerald-400/10 border border-emerald-400/20 px-3 py-1.5 rounded-xl font-medium">
-                    <span className="flex items-center gap-1.5">
-                      <GoogleIcon className="h-3.5 w-3.5" /> Google Profile Connected
-                    </span>
-                    <span className="text-white/40">✓</span>
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between text-[11px] text-emerald-300 bg-emerald-400/10 border border-emerald-400/20 px-3 py-1.5 rounded-xl font-medium">
+                      <span className="flex items-center gap-1.5">
+                        <GoogleIcon className="h-3.5 w-3.5" /> Google Profile Connected
+                      </span>
+                      <span className="text-white/40">✓</span>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => void handleLogout()}
+                      className="w-full inline-flex items-center justify-center gap-1.5 rounded-xl border border-rose-400/30 bg-rose-400/10 px-3 py-1.5 text-xs font-semibold text-rose-200 hover:bg-rose-400/20 transition"
+                    >
+                      <LogOut className="h-3.5 w-3.5" /> Sign Out
+                    </button>
                   </div>
                 )}
               </div>
@@ -409,11 +427,26 @@ export function ForgeParticipantWorkspace() {
                 </div>
 
                 <Link
+                  href="/"
+                  className="rounded-full bg-white/10 hover:bg-white/20 border border-white/14 px-3.5 py-1.5 text-xs font-semibold text-white transition"
+                >
+                  Home
+                </Link>
+
+                <Link
                   href="/content/submit"
                   className="rounded-full bg-white/10 hover:bg-white/20 border border-white/14 px-4 py-1.5 text-xs font-semibold text-white transition"
                 >
                   Submit Deliverable
                 </Link>
+
+                <button
+                  type="button"
+                  onClick={() => void handleLogout()}
+                  className="inline-flex items-center gap-1.5 rounded-full border border-rose-400/30 bg-rose-400/10 px-4 py-1.5 text-xs font-semibold text-rose-200 hover:bg-rose-400/20 transition"
+                >
+                  <LogOut className="h-3.5 w-3.5" /> Log Out
+                </button>
               </div>
             </div>
 

@@ -101,9 +101,13 @@ function isExpired(session: BeamReturnSession) {
   return session.expiresAt !== null && session.expiresAt <= Date.now()
 }
 
-function clearStoredBeamReturnToken() {
+export function clearBeamReturnSession() {
   if (typeof window === 'undefined') return
   window.sessionStorage.removeItem(BEAM_RETURN_ID_TOKEN_STORAGE_KEY)
+}
+
+function clearStoredBeamReturnToken() {
+  clearBeamReturnSession()
 }
 
 function readStoredBeamReturnToken() {

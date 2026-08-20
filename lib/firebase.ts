@@ -1,5 +1,5 @@
 import { getApp, getApps, initializeApp } from 'firebase/app'
-import { getAuth, GoogleAuthProvider, onAuthStateChanged, signInWithPopup, type User } from 'firebase/auth'
+import { getAuth, GoogleAuthProvider, onAuthStateChanged, signInWithPopup, signOut, type User } from 'firebase/auth'
 import { getFirestore } from 'firebase/firestore'
 
 const firebaseConfig = {
@@ -19,7 +19,7 @@ export const firebaseApp = isConfigured
 
 export const auth = firebaseApp ? getAuth(firebaseApp) : null
 export const db = firebaseApp ? getFirestore(firebaseApp) : null
-export { GoogleAuthProvider, signInWithPopup }
+export { GoogleAuthProvider, signInWithPopup, signOut }
 
 export function subscribeToAuth(callback: (user: User | null) => void) {
   if (!auth) {
