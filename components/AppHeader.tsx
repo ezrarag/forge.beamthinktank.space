@@ -8,6 +8,8 @@ import { ensureForgeMembership } from '@/lib/beam-auth'
 import { auth, GoogleAuthProvider, signInWithPopup } from '@/lib/firebase'
 import { cn } from '@/lib/utils'
 
+import { useForgeAuth } from '@/components/AuthBootstrapper'
+
 const navItems = [
   { href: '/', label: 'Overview' },
   { href: '/viewer', label: 'Viewer' },
@@ -56,9 +58,13 @@ function getGoogleSignInError(error: unknown) {
 
 export function AppHeader({ className }: { className?: string }) {
   const router = useRouter()
+  const { activeSession, authUser } = useForgeAuth()
   const [isSigningIn, setIsSigningIn] = useState(false)
   const [signInError, setSignInError] = useState<string | null>(null)
   const hasOpenedSigninQuery = useRef(false)
+
+  const userPhoto = authUser?.photoURL || activeSession?.photoURL || null
+  const userDisplayName = activeSession?.displayName || authUser?.displayName || 'Forge Member'
 
   const handleGoogleSignIn = useCallback(async () => {
     if (!auth) {
@@ -132,24 +138,46 @@ export function AppHeader({ className }: { className?: string }) {
             <TerminalSquare className="h-4 w-4" />
             <Wrench className="h-4 w-4" />
           </div>
-          <div className="flex flex-col items-end gap-1">
-            <button
-              type="button"
-              onClick={() => {
-                void handleGoogleSignIn()
-              }}
-              disabled={isSigningIn}
-              className="inline-flex items-center gap-2 rounded-full border border-white/10 px-4 py-2 text-sm font-medium text-white/68 transition hover:border-white/30 hover:bg-white/[0.04] hover:text-white disabled:cursor-not-allowed disabled:opacity-60"
+
+          {activeSession?.uid ? (
+            <Link
+              href="/dashboard"
+              className="flex items-center gap-2.5 rounded-full border border-white/14 bg-white/[0.05] p-1.5 pr-4 text-xs font-semibold text-white hover:bg-white/10 transition"
             >
-              <GoogleIcon className="h-4 w-4" />
-              {isSigningIn ? 'Signing in...' : 'Sign in with Google'}
-            </button>
-            {signInError ? (
-              <p role="alert" className="max-w-[15rem] text-right text-xs leading-5 text-rose-200">
-                {signInError}
-              </p>
-            ) : null}
-          </div>
+              {userPhoto ? (
+                <img
+                  src={userPhoto}
+                  alt={userDisplayName}
+                  className="h-8 w-8 rounded-full object-cover border border-white/20"
+                />
+              ) : (
+                <div className="flex h-8 w-8 items-center justify-center rounded-full bg-[#f5a623]/20 text-[#f5a623] font-bold text-xs">
+                  {userDisplayName.slice(0, 2).toUpperCase()}
+                </div>
+              )}
+              <span className="max-w-[100px] truncate">{userDisplayName.split(' ')[0]}</span>
+            </Link>
+          ) : (
+            <div className="flex flex-col items-end gap-1">
+              <button
+                type="button"
+                onClick={() => {
+                  void handleGoogleSignIn()
+                }}
+                disabled={isSigningIn}
+                className="inline-flex items-center gap-2 rounded-full border border-white/10 px-4 py-2 text-sm font-medium text-white/68 transition hover:border-white/30 hover:bg-white/[0.04] hover:text-white disabled:cursor-not-allowed disabled:opacity-60"
+              >
+                <GoogleIcon className="h-4 w-4" />
+                {isSigningIn ? 'Signing in...' : 'Sign in with Google'}
+              </button>
+              {signInError ? (
+                <p role="alert" className="max-w-[15rem] text-right text-xs leading-5 text-rose-200">
+                  {signInError}
+                </p>
+              ) : null}
+            </div>
+          )}
+
           <Link
             href="/join"
             className="inline-flex items-center gap-2 rounded-full bg-[#f5a623] px-4 py-2 text-sm font-semibold text-[#11131d] transition hover:brightness-105"

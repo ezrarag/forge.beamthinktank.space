@@ -13,6 +13,7 @@ interface FirebaseIdTokenClaims {
   user_id?: string
   email?: string
   name?: string
+  picture?: string
 }
 
 interface FirestoreValue {
@@ -39,6 +40,7 @@ export interface BeamReturnSession {
   uid: string
   email: string | null
   displayName: string | null
+  photoURL: string | null
   expiresAt: number | null
 }
 
@@ -87,6 +89,7 @@ function parseBeamReturnSession(idToken: string): BeamReturnSession | null {
       uid,
       email: claims.email ?? null,
       displayName: claims.name ?? null,
+      photoURL: claims.picture ?? null,
       expiresAt: typeof claims.exp === 'number' ? claims.exp * 1000 : null,
     }
   } catch {

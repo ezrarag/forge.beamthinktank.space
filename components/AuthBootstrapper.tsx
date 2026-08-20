@@ -17,6 +17,7 @@ type ForgeAuthSession =
       uid: string
       email: string | null
       displayName: string | null
+      photoURL: string | null
       idToken: null
     }
   | {
@@ -24,6 +25,7 @@ type ForgeAuthSession =
       uid: string
       email: string | null
       displayName: string | null
+      photoURL: string | null
       idToken: string
     }
 
@@ -84,6 +86,7 @@ export function AuthBootstrapper({ children }: { children: ReactNode }) {
         uid: authUser.uid,
         email: authUser.email ?? null,
         displayName: authUser.displayName ?? null,
+        photoURL: authUser.photoURL ?? null,
         idToken: null,
       }
     }
@@ -94,6 +97,7 @@ export function AuthBootstrapper({ children }: { children: ReactNode }) {
         uid: beamReturnSession.uid,
         email: beamReturnSession.email,
         displayName: beamReturnSession.displayName,
+        photoURL: beamReturnSession.photoURL ?? null,
         idToken: beamReturnSession.idToken,
       }
     }
