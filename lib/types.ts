@@ -253,3 +253,85 @@ export interface ForgeContentProject {
   createdAt: Timestamp
   updatedAt: Timestamp
 }
+
+export interface ForgeLocationNode {
+  id: string
+  name: string
+  city: string
+  state: string
+  facilityType: 'fab_lab' | 'software_hub' | 'gpu_cluster' | 'client_site' | 'remote'
+  address?: string
+  lat?: number
+  lng?: number
+  isUniversityProximity?: boolean
+  universityName?: string
+}
+
+export interface ForgeEntityAffiliation {
+  id: string
+  name: string
+  shortName: string
+  kind: 'beam_core' | 'ngo_partner' | 'corporate_client' | 'academic_institution'
+  logoUrl?: string
+  description?: string
+  websiteUrl?: string
+}
+
+export interface ForgeWorkSiteAttachment {
+  siteId: string
+  siteName: string
+  city: string
+  state: string
+  attachedAt: string
+  skillsOrCapacities: string[]
+  notifyOnWorkAvailable: boolean
+}
+
+export type ForgeWorkItemStatus = 'open' | 'claimed' | 'in_review' | 'completed'
+export type ForgeDeliverableType = 'code' | 'hardware_prototype' | 'repair' | 'content_video' | 'fintech_ledger' | 'it_spec'
+
+export interface ForgeWorkItemCompensation {
+  cashUsd?: number
+  equityCredits?: number
+  beamCoins?: number
+  label: string
+}
+
+export interface ForgeWorkItem {
+  id: string
+  title: string
+  summary: string
+  trackId: ForgeTrackId
+  projectId?: string
+  deliverableType: ForgeDeliverableType
+  status: ForgeWorkItemStatus
+  locationNode: ForgeLocationNode
+  entityAffiliation: ForgeEntityAffiliation
+  assignedParticipants: AdminParticipant[]
+  requiredSkills: string[]
+  toolsRequired?: string[]
+  compensation: ForgeWorkItemCompensation
+  dueDate?: string
+  claimedByUid?: string
+  claimedByName?: string
+  claimedAt?: string
+}
+
+export interface ForgeParticipantProfile {
+  uid: string
+  displayName: string
+  email: string
+  role: string
+  bio: string
+  avatarUrl: string
+  isVerified: boolean
+  targetLocations: ForgeLocationNode[]
+  attachedWorkSites: ForgeWorkSiteAttachment[]
+  skills: string[]
+  tools: string[]
+  sweatEquityHours: number
+  earnedCashUsd: number
+  earnedBeamCoins: number
+  claimedWorkItemIds: string[]
+}
+

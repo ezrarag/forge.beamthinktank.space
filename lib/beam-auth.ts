@@ -259,7 +259,7 @@ async function ensureForgeMembershipWithFirebaseUser(user: User) {
 
   const userRef = doc(db, 'users', user.uid)
   const snapshot = await getDoc(userRef)
-  const existingRoles = snapshot.data()?.roles
+  const existingData = snapshot.data() || {}
 
   const payload: Record<string, unknown> = {
     email: user.email ?? null,
@@ -267,9 +267,18 @@ async function ensureForgeMembershipWithFirebaseUser(user: User) {
     photoURL: user.photoURL ?? null,
     memberships: arrayUnion('forge'),
     lastLoginAt: serverTimestamp(),
+    bio: existingData.bio ?? '',
+    skills: existingData.skills ?? [],
+    availability: existingData.availability ?? 'project-basis',
+    preferredRoles: existingData.preferredRoles ?? [],
+    workStyle: existingData.workStyle ?? '',
+    portfolioUrl: existingData.portfolioUrl ?? '',
+    githubHandle: existingData.githubHandle ?? '',
+    contactPreference: existingData.contactPreference ?? 'email',
+    activeProjectIds: existingData.activeProjectIds ?? [],
   }
 
-  if (!Array.isArray(existingRoles) || existingRoles.length === 0) {
+  if (!Array.isArray(existingData.roles) || existingData.roles.length === 0) {
     payload.roles = ['participant']
   }
 

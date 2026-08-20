@@ -603,3 +603,240 @@ export function cloneProject(project: ForgeProject): EditableForgeProject {
     linkedParticipantIds: [],
   }
 }
+
+import type {
+  ForgeEntityAffiliation,
+  ForgeLocationNode,
+  ForgeParticipantProfile,
+  ForgeWorkItem,
+} from '@/lib/types'
+
+export const seedLocationNodes: ForgeLocationNode[] = [
+  {
+    id: 'node-mke-fab',
+    name: 'Milwaukee Fabrication & Repair Lab',
+    city: 'Milwaukee',
+    state: 'WI',
+    facilityType: 'fab_lab',
+    address: '1920 W Wells St, Milwaukee, WI 53233',
+    lat: 43.0389,
+    lng: -87.9275,
+    isUniversityProximity: true,
+    universityName: 'Marquette University & UW-Milwaukee',
+  },
+  {
+    id: 'node-atl-innovation',
+    name: 'Atlanta Fintech & Hardware Hub',
+    city: 'Atlanta',
+    state: 'GA',
+    facilityType: 'software_hub',
+    address: 'North Ave NW, Atlanta, GA 30332',
+    lat: 33.7756,
+    lng: -84.3963,
+    isUniversityProximity: true,
+    universityName: 'Georgia Tech',
+  },
+  {
+    id: 'node-runpod-gpu',
+    name: 'Remote GPU AI Production Cluster',
+    city: 'Cloud / Remote',
+    state: 'Global',
+    facilityType: 'gpu_cluster',
+    address: 'RunPod Serverless Compute Layer',
+  },
+  {
+    id: 'node-beam-cloud',
+    name: 'BEAM Network Operations Center',
+    city: 'Cloud Fleet',
+    state: 'Multi-Site',
+    facilityType: 'software_hub',
+    address: 'Vercel / Firebase Multi-Subdomain Infrastructure',
+  },
+]
+
+export const seedEntityAffiliations: ForgeEntityAffiliation[] = [
+  {
+    id: 'entity-beam',
+    name: 'BEAM Think Tank Core Stack',
+    shortName: 'BEAM Core',
+    kind: 'beam_core',
+    description: 'Internal BEAM NGO ecosystem development, venture stack, and equity ledger engine.',
+    websiteUrl: 'https://beamthinktank.space',
+  },
+  {
+    id: 'entity-readyaimgo',
+    name: 'Readyaimgo Business Services',
+    shortName: 'Readyaimgo',
+    kind: 'corporate_client',
+    description: 'Client delivery partner managing AI pipelines, media automation, and external software contracts.',
+    websiteUrl: 'https://readyaimgo.biz',
+  },
+  {
+    id: 'entity-mke-black',
+    name: 'MKE Black Digital Platform',
+    shortName: 'MKE Black',
+    kind: 'ngo_partner',
+    description: 'Community NGO business directory and application platform operating in Milwaukee.',
+    websiteUrl: 'https://mkeblack.org',
+  },
+  {
+    id: 'entity-bdo',
+    name: 'Black Diaspora Symphony Orchestra Network',
+    shortName: 'BDSO / Orchestra',
+    kind: 'ngo_partner',
+    description: 'Cultural arts & music partner organization collaborating on media production and contract projects.',
+  },
+  {
+    id: 'entity-community-device',
+    name: 'Community Device Access Program',
+    shortName: 'Device Access Program',
+    kind: 'ngo_partner',
+    description: 'Grassroots hardware recycling and refurbishment initiative providing low-cost devices.',
+  },
+]
+
+export const seedWorkItems: ForgeWorkItem[] = [
+  {
+    id: 'work-mke-black-app',
+    title: 'MKE Black App Directory & API Integration',
+    summary: 'Build and optimize the business directory lookup, filtering, and map components for the MKE Black platform.',
+    trackId: 'software',
+    projectId: 'mke-black-digital-platform',
+    deliverableType: 'code',
+    status: 'open',
+    locationNode: seedLocationNodes[0]!,
+    entityAffiliation: seedEntityAffiliations[2]!,
+    assignedParticipants: [
+      { id: 'p-ezra', name: 'Ezra Haugabrooks', email: 'ezra@beamthinktank.space', role: 'Full-stack Lead', status: 'Active', headline: 'BEAM Ecosystem Steward', notes: '' },
+    ],
+    requiredSkills: ['React', 'Next.js', 'TypeScript', 'Mapbox / Geo JSON'],
+    toolsRequired: ['VS Code', 'GitHub', 'Tailwind CSS'],
+    compensation: {
+      cashUsd: 450,
+      beamCoins: 12,
+      label: '$450 Paid Milestone + 12 BEAM Coins',
+    },
+    dueDate: '2026-04-15',
+  },
+  {
+    id: 'work-runpod-comfyui-pipeline',
+    title: 'ComfyUI Video & Transcribe Production Pipeline',
+    summary: 'Deploy GPU serverless workflows on RunPod for video generation, transcription, and social cut outputs.',
+    trackId: 'content-production',
+    projectId: 'runpod-comfyui-pipeline',
+    deliverableType: 'content_video',
+    status: 'open',
+    locationNode: seedLocationNodes[2]!,
+    entityAffiliation: seedEntityAffiliations[1]!,
+    assignedParticipants: [],
+    requiredSkills: ['ComfyUI', 'RunPod GPU', 'Veo3', 'CapCut Pro'],
+    toolsRequired: ['RunPod', 'Python', 'CapCut Pro'],
+    compensation: {
+      cashUsd: 300,
+      beamCoins: 8,
+      label: '$300 Billed Deliverable Rate + 8 BEAM Coins',
+    },
+    dueDate: '2026-04-30',
+  },
+  {
+    id: 'work-repair-clinic-intake',
+    title: 'Refurbished Device Triage & Bench Repair SOP',
+    summary: 'Establish physical intake checklist, component testing benchmarks, and repair logging for community hardware.',
+    trackId: 'fabrication',
+    projectId: 'repair-clinic-pilot',
+    deliverableType: 'repair',
+    status: 'open',
+    locationNode: seedLocationNodes[0]!,
+    entityAffiliation: seedEntityAffiliations[4]!,
+    assignedParticipants: [],
+    requiredSkills: ['Hardware Triage', 'Soldering', 'Bench Diagnostics', 'Technical Writing'],
+    toolsRequired: ['Soldering Station', 'Multimeter', 'iFixit Toolkit'],
+    compensation: {
+      cashUsd: 250,
+      beamCoins: 6,
+      label: '$250 Community Stipend + 6 BEAM Coins',
+    },
+    dueDate: '2026-05-10',
+  },
+  {
+    id: 'work-equity-ledger-module',
+    title: 'Equity Ledger Cap Table Export Module',
+    summary: 'Implement participant equity distribution calculations and cap table summary exports in the Fintech ledger.',
+    trackId: 'fintech',
+    projectId: 'equity-ledger-core',
+    deliverableType: 'fintech_ledger',
+    status: 'open',
+    locationNode: seedLocationNodes[1]!,
+    entityAffiliation: seedEntityAffiliations[0]!,
+    assignedParticipants: [],
+    requiredSkills: ['Cap Table Accounting', 'TypeScript', 'Firestore Rules', 'Fintech Security'],
+    toolsRequired: ['Next.js', 'Firebase Admin', 'Stripe API'],
+    compensation: {
+      cashUsd: 500,
+      equityCredits: 25,
+      label: '$500 Cash + 25 In-Kind Equity Shares',
+    },
+    dueDate: '2026-04-22',
+  },
+  {
+    id: 'work-beam-network-hardening',
+    title: 'BEAM Fleet Endpoint Security & Segmentation',
+    summary: 'Configure wifi VLAN segmentation, device recovery runbooks, and admin key rotation across NGO endpoints.',
+    trackId: 'it',
+    projectId: 'beam-network-hardening',
+    deliverableType: 'it_spec',
+    status: 'claimed',
+    locationNode: seedLocationNodes[3]!,
+    entityAffiliation: seedEntityAffiliations[0]!,
+    assignedParticipants: [
+      { id: 'p-jordan', name: 'Jordan / Infrastructure Ops', email: 'jordan@readyaimgo.biz', role: 'IT Lead', status: 'Active', headline: 'Systems Admin', notes: '' },
+    ],
+    requiredSkills: ['Network Hardening', 'UniFi / Router Config', 'Device Fleet Management'],
+    toolsRequired: ['SSH', 'WireGuard', '1Password'],
+    compensation: {
+      cashUsd: 350,
+      beamCoins: 4,
+      label: '$350 Cash Contract + 4 BEAM Coins',
+    },
+    dueDate: '2026-04-05',
+    claimedByUid: 'demo-it-lead',
+    claimedByName: 'Jordan / Infrastructure Ops',
+    claimedAt: '2026-03-15',
+  },
+]
+
+export function buildInitialParticipantProfile(params: {
+  uid: string
+  email?: string | null
+  displayName?: string | null
+  role?: string | null
+}): ForgeParticipantProfile {
+  return {
+    uid: params.uid,
+    displayName: params.displayName || 'BEAM Forge Member',
+    email: params.email || '',
+    role: params.role || 'Community Builder & Fabricator',
+    bio: 'Active participant building software, hardware fabrication, and fintech infrastructure in the BEAM network.',
+    avatarUrl: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=400&q=80',
+    isVerified: true,
+    targetLocations: [seedLocationNodes[0]!, seedLocationNodes[1]!],
+    attachedWorkSites: [
+      {
+        siteId: seedLocationNodes[0]!.id,
+        siteName: seedLocationNodes[0]!.name,
+        city: seedLocationNodes[0]!.city,
+        state: seedLocationNodes[0]!.state,
+        attachedAt: '2026-03-01',
+        skillsOrCapacities: ['Soldering', 'Next.js Delivery', 'Component Triage'],
+        notifyOnWorkAvailable: true,
+      },
+    ],
+    skills: ['Next.js', 'TypeScript', 'Hardware Triage', 'ComfyUI Video', 'Fintech Ledgers'],
+    tools: ['VS Code', 'RunPod', 'Soldering Station', 'CapCut Pro'],
+    sweatEquityHours: 72,
+    earnedCashUsd: 1450,
+    earnedBeamCoins: 26,
+    claimedWorkItemIds: ['work-mke-black-app'],
+  }
+}
+
