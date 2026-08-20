@@ -287,7 +287,15 @@ export interface ForgeWorkSiteAttachment {
   notifyOnWorkAvailable: boolean
 }
 
-export type ForgeWorkItemStatus = 'open' | 'claimed' | 'in_review' | 'completed'
+export type ForgeWorkItemStatus =
+  | 'scoping'
+  | 'discovery'
+  | 'awaiting_assignment'
+  | 'open'
+  | 'claimed'
+  | 'in_review'
+  | 'completed'
+
 export type ForgeDeliverableType = 'code' | 'hardware_prototype' | 'repair' | 'content_video' | 'fintech_ledger' | 'it_spec'
 
 export interface ForgeWorkItemCompensation {
@@ -297,12 +305,21 @@ export interface ForgeWorkItemCompensation {
   label: string
 }
 
+export interface ForgeWorkItemContextProfile {
+  clientContacted: boolean
+  contractSigned: boolean
+  statusLabel?: string
+  clientName?: string
+}
+
 export interface ForgeWorkItem {
   id: string
   title: string
   summary: string
   trackId: ForgeTrackId
   projectId?: string
+  githubRepoUrl?: string
+  contextProfile?: ForgeWorkItemContextProfile
   deliverableType: ForgeDeliverableType
   status: ForgeWorkItemStatus
   locationNode: ForgeLocationNode
